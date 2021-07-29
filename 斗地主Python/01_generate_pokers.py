@@ -15,6 +15,8 @@ def shufflePokers(src_pokers):
 
 
 def main():
+    random.seed(20210729)
+
     poker_num = [str(i) for i in range(2, 11)]
     poker_str = ['A', 'J', 'Q', 'K']
     poker_king = ['大王', '小王']
@@ -33,6 +35,8 @@ def main():
     print(player_a)
     print(player_b)
     print(player_c)
+
+    # todo: How to sort the pokers of each player? Using Class is necessary.
 
 
 if __name__ == '__main__':
