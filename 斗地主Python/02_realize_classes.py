@@ -10,11 +10,16 @@ import random
 POKER_COLOR = ['方片♦', '梅花♣', '红心♥', '黑桃♠']
 POKER_NUMBER = ['A'] + [str(i) for i in range(2, 11)] + ['J', 'Q', 'K']
 POKER_KING = ['小王', '大王']
+POKER_SIZE = {
+    '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+    'J': 11, 'Q': 12, 'K': 13, 'A': 14, '2': 15, '小王': 16, '大王': 17,
+    '': 0, '方片♦': 0.1, '梅花♣': 0.2, '红心♥': 0.3, '黑桃♠': 0.4
+}
 
 
 class Poker(object):
     """
-    A poker.
+    A single poker.
     """
 
     def __init__(self, color, number):
@@ -42,13 +47,52 @@ class Poker(object):
 
     def __str__(self):
         """
-        Str method.
+        Str method of Poker.
         :return: color + number.
         """
         return self.__color + self.__number
 
+    def __lt__(self, other):
+        """
+        Override < operator of Poker.
+        :param other: another poker.
+        :return: whether self is smaller than other.
+        """
+        left = POKER_SIZE[self.__color] + POKER_SIZE[self.__number]
+        right = POKER_SIZE[other.__color] + POKER_SIZE[other.__number]
+        if left < right:
+            return True
+        else:
+            return False
+
 
 class Pokers(object):
+    """
+    A series of pokers.
+    """
+
+    def __init__(self):
+        """
+        Init pokers.
+        """
+        self._pokers = []
+
+    def __str__(self):
+        """
+        Str method of Pokers.
+        :return: all pokers.
+        """
+        pokers = []
+        for poker in self._pokers:
+            pokers.append(str(poker))
+
+        return str(pokers)
+
+    def sortPokers(self):
+        self._pokers.sort(reverse=True)
+
+
+class PokerStack(Pokers):
     """
     A stack of pokers.
     """
@@ -57,11 +101,12 @@ class Pokers(object):
         """
         Init a poker stack.
         """
-        self.__pokers = []
-        self.initPokers()
-        self.shufflePokers()
+        super().__init__()
 
-    def initPokers(self):
+        self.initPokerStack()
+        self.shufflePokerStack()
+
+    def initPokerStack(self):
         """
         Init a poker stack.
         :return: None
@@ -69,19 +114,19 @@ class Pokers(object):
         for color in POKER_COLOR:
             for number in POKER_NUMBER:
                 poker = Poker(color, number)
-                self.__pokers.append(poker)
+                self._pokers.append(poker)
 
         for king in POKER_KING:
             poker = Poker(king, '')
-            self.__pokers.append(poker)
+            self._pokers.append(poker)
 
-    def shufflePokers(self):
+    def shufflePokerStack(self):
         """
         Shuffle the pokers.
         :return: None
         """
-        random.seed(20210730)
-        random.shuffle(self.__pokers)
+        # random.seed(20210730)
+        random.shuffle(self._pokers)
 
     def getPokers(self, n=1):
         """
@@ -91,79 +136,64 @@ class Pokers(object):
         """
         pokers = []
         for _ in range(n):
-            if self.__pokers:
-                pokers.append(self.__pokers.pop())
+            if self._pokers:
+                pokers.append(self._pokers.pop())
             else:
                 print('Error 01')
 
         return pokers
 
-    def __str__(self):
+
+class SimplePlayer(Pokers):
+    """
+    A simple player inheritance from Pokers.
+    """
+
+    def __init__(self, id_, pokers: PokerStack):
         """
-        Str method.
-        :return: all pokers.
+        Init a simple player.
+        :param id_: player's id.
+        :param pokers: a poker stack.
         """
-        lst = []
-        for poker in self.__pokers:
-            lst.append(str(poker))
+        super().__init__()
 
-        return str(lst)
-
-
-class SimplePlayer(object):
-    def __init__(self, id_, pokers: Pokers):
         self.__id = id_
-        self.__pokers = pokers.getPokers(17)
-        pass
-
-    def __str__(self):
-        lst = []
-        for poker in self.__pokers:
-            lst.append(str(poker))
-
-        return str(lst)
-
-    pass
+        self._pokers = pokers.getPokers(17)
+        self.sortPokers()
 
 
-def printPokers(player):
-    for poker in player:
-        print(poker, end=' ')
-    print(len(player))
+class SimpleLandlordPoker(Pokers):
+    """
+    A simple landlord poker inheritance from Pokers.
+    """
+
+    def __init__(self, id_, pokers: PokerStack):
+        """
+        Init a simple landlord poker.
+        :param id_: player's id.
+        :param pokers: a poker stack.
+        """
+        super().__init__()
+
+        self.__id = id_
+        self._pokers = pokers.getPokers(3)
 
 
 def main():
-    # print(POKER_COLOR)
-    # print(POKER_NUMBER)
-    # print(POKER_KING)
+    poker_stack = PokerStack()
+    print(poker_stack)
 
-    # p = Poker('方片♦', 'A')
-    # print(p)
-
-    P = Pokers()
-    print(P)
-
-    # player_a = P.getPokers(17)
-    # player_b = P.getPokers(17)
-    # player_c = P.getPokers(17)
-    # landlord_three = P.getPokers(3)
-    #
-    # printPokers(player_a)
-    # printPokers(player_b)
-    # printPokers(player_c)
-    # printPokers(landlord_three)
-    #
-    # P.getPokers()
-
-    player_a = SimplePlayer(0, P)
-    player_b = SimplePlayer(1, P)
-    player_c = SimplePlayer(2, P)
+    player_a = SimplePlayer(0, poker_stack)
+    player_b = SimplePlayer(1, poker_stack)
+    player_c = SimplePlayer(2, poker_stack)
+    landlord_three = SimpleLandlordPoker(3, poker_stack)
 
     print(player_a)
     print(player_b)
     print(player_c)
+    print(landlord_three)
 
-    print(P)
+    print(poker_stack)
     pass
 
 
