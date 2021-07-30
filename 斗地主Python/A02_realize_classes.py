@@ -3,7 +3,7 @@
 # @Time    : 2021/7/30 16:43
 # @Author  : Zhanyu Guo
 # @Email   : 942568052@qq.com
-# @File    : 02_realize_classes.py
+# @File    : A02_realize_classes.py
 # @Software: PyCharm
 import random
 
@@ -90,6 +90,9 @@ class Pokers(object):
 
     def sortPokers(self):
         self._pokers.sort(reverse=True)
+
+    def getType(self):
+        pass
 
 
 class PokerStack(Pokers):
