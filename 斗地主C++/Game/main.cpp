@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <memory>
 #include "poker.h"
 #include "game.h"
@@ -10,8 +10,11 @@ void test() noexcept
 	throw std::exception();
 }
 
+
 int main()
 {
+	//system("chcp 65001");
+	
 	using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
 	std::shared_ptr<PokerGame::FAL::Player>
 		p1(new Tester(string("Tom"))),
@@ -22,5 +25,8 @@ int main()
 
 	game.Run();
 
+	int a;
+	std::cin >> a;
 	return 0;
 }
+

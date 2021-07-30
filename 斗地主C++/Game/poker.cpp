@@ -43,7 +43,7 @@ namespace PokerGame
 	PokerPoint PokerCard::Get3BasedNum() const
 	{
 		PokerPoint point = this->GetPoint();
-		if (point == 14 || point == 15) 
+		if (point == 14 || point == 15)
 		{
 			return point;
 		}
@@ -78,6 +78,69 @@ namespace PokerGame
 			{
 				return std::string("Joker");
 			}
+		}
+	}
+
+	std::string PokerCard::ToString(bool styled) const
+	{
+		if (!styled)
+		{
+			return this->ToString();
+		}
+		else
+		{
+			PokerPoint point = this->GetPoint();
+			if (point == 15)
+			{
+				return std::string("JOKER");
+			}
+			if (point == 14)
+			{
+				return std::string("Joker");
+			}
+			PokerColor color = this->GetColor();
+			std::string colorChar("");
+			std::string pointChar("");
+			switch (point)
+			{
+			case 13:
+				pointChar = std::string("K");
+				break;
+			case 12:
+				pointChar = std::string("Q");
+				break;
+			case 11:
+				pointChar = std::string("J");
+				break;
+			case 1:
+				pointChar = std::string("A");
+				break;
+			default:
+				pointChar = std::to_string(point);
+			}
+			switch (color)
+			{
+		
+			case PokerGame::PokerColor::Empty:
+				break;
+			case PokerGame::PokerColor::Spade:
+				colorChar = std::string("♠");
+				break;
+			case PokerGame::PokerColor::Heart:
+				colorChar = std::string("♥");
+				break;
+			case PokerGame::PokerColor::Club:
+				colorChar = std::string("♣");
+				break;
+			case PokerGame::PokerColor::Diamond:
+				colorChar = std::string("♦");
+				break;
+			case PokerGame::PokerColor::Joker:
+				break;
+			default:
+				break;
+			}
+			return colorChar + pointChar;
 		}
 	}
 
@@ -151,6 +214,18 @@ namespace PokerGame
 		return false;
 	}
 
+	std::string IdBasedCardCollection::ToString()
+	{
+		std::string cardsStr("[");
+		for (int i = 0; i < this->Count(); i++)
+		{
+			cardsStr += (*this)[i].ToString(true);
+			cardsStr += std::string(",\t");
+		}
+		cardsStr += std::string("]");
+		return cardsStr;
+	}
+
 	IdBasedCardCollection::~IdBasedCardCollection()
 	{
 
@@ -158,7 +233,7 @@ namespace PokerGame
 
 	IdBasedCardCollection::IdBasedCardCollection()
 	{
-		
+
 	}
 
 	IdBasedCardCollection::IdBasedCardCollection(int reserved)
@@ -238,8 +313,8 @@ namespace PokerGame
 	public:
 		bool operator()(PokerCard& left, PokerCard& right) const
 		{
-			PokerPoint 
-				left_num = left.Get3BasedNum(), 
+			PokerPoint
+				left_num = left.Get3BasedNum(),
 				right_num = right.Get3BasedNum();
 			if (left_num != right_num)
 			{
@@ -253,7 +328,7 @@ namespace PokerGame
 				return (left_color < right_color);
 			}
 		}
-		bool operator()(PokerCardId& leftId, PokerCardId& rightId) const 
+		bool operator()(PokerCardId& leftId, PokerCardId& rightId) const
 		{
 			PokerCard left(leftId), right(rightId);
 			return this->operator()(left, right);

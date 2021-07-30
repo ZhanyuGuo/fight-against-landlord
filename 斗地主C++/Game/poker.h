@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <vector>
 
@@ -33,6 +33,7 @@ namespace PokerGame
 		virtual PokerPoint GetPoint() const;
 		virtual PokerPoint Get3BasedNum() const;
 		virtual std::string ToString() const;
+		virtual std::string ToString(bool styled) const;
 	private:
 		PokerCardId id;
 	};
@@ -50,6 +51,7 @@ namespace PokerGame
 		//virtual const PokerCard operator[](int index) const = 0;
 		virtual bool ContainsCard(PokerCard card) = 0;
 		virtual bool ContainsCollection(PokerCardCollection& other) = 0;
+		virtual std::string ToString() = 0;
 		virtual ~PokerCardCollection() {}
 		
 	};
@@ -66,6 +68,7 @@ namespace PokerGame
 		virtual PokerCard operator[](int index);
 		virtual bool ContainsCard(PokerCard card);
 		virtual bool ContainsCollection(PokerCardCollection& other);
+		virtual std::string ToString();
 		virtual ~IdBasedCardCollection();
 		IdBasedCardCollection();
 		IdBasedCardCollection(int reserved);

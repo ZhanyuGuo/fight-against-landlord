@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "poker.h"
 #include <memory>
 #include <string>
@@ -58,11 +58,12 @@ namespace PokerGame
 				Active, Follow, Pass
 			};
 			MotionType GetType() const;
-			PokerCardCollection* GetContent() const;
-			CardEvent(MotionType type, PokerCardCollection* content);
+			std::shared_ptr<PokerCardCollection> GetContent() const;
+			CardEvent(MotionType type);
+			CardEvent(MotionType type, std::shared_ptr<PokerCardCollection>& content);
 		private:
 			MotionType type;
-			PokerCardCollection* content;
+			std::shared_ptr<PokerCardCollection> content;
 		};
 
 
@@ -70,9 +71,10 @@ namespace PokerGame
 		class Player
 		{
 		public:
-			virtual int PrepareResponse(int leastPoint) = 0;
+			virtual int PrepareResponse(int leastPoint) noexcept = 0;
 			virtual CardEvent CardResponse(CardEvent e) noexcept = 0;
 			virtual PokerCardCollection& GetCards() = 0;
+			virtual std::string GetName() = 0;
 			virtual void Reset() = 0;
 		};
 
@@ -86,7 +88,15 @@ namespace PokerGame
 			~GameProcess();
 			void Run();
 		private:
+			int Magnification;
+			int LandlordIndex;
+			bool LandlordSelected;
 			std::shared_ptr<Player> players[PlayerNum];
+			std::unique_ptr<PokerCardCollection> LordCards;
+			void ResetGame();
+			void HandoutInitCards();
+			void DetermineLandlord();
+			void MainCardLoop();
 		};
 
 
@@ -105,9 +115,10 @@ namespace PokerGame
 		class StupidLocalPlayerForDebugging : public LocalPlayer
 		{
 		public:
-			virtual int PrepareResponse(int leastPoint);
+			virtual int PrepareResponse(int leastPoint) noexcept;
 			virtual CardEvent CardResponse(CardEvent e) noexcept;
 			virtual PokerCardCollection& GetCards();
+			virtual std::string GetName();
 			virtual void Reset();
 			StupidLocalPlayerForDebugging(std::string name);
 		private:
