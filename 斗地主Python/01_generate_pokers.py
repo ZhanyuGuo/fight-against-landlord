@@ -26,10 +26,10 @@ def main():
     print(pokers)
     print(pokers_shuffled)
 
-    landlord_three = pokers_shuffled[:3]
-    player_a = pokers_shuffled[3::3]
-    player_b = pokers_shuffled[4::3]
-    player_c = pokers_shuffled[5::3]
+    landlord_three = pokers_shuffled[-3:]
+    player_a = pokers_shuffled[0:-3:3]
+    player_b = pokers_shuffled[1:-3:3]
+    player_c = pokers_shuffled[2:-3:3]
 
     print(landlord_three)
     print(player_a)
