@@ -7,13 +7,21 @@
 # @Software: PyCharm
 import random
 
-POKER_COLOR = ['方片♦', '梅花♣', '红心♥', '黑桃♠']
+# POKER_COLOR = ['方片♦', '梅花♣', '红心♥', '黑桃♠']
+POKER_COLOR = ['♦', '♣', '♥', '♠']
 POKER_NUMBER = ['A'] + [str(i) for i in range(2, 11)] + ['J', 'Q', 'K']
-POKER_KING = ['小王', '大王']
+POKER_KING = ['joker', 'JOKER']
+
+# POKER_SIZE = {
+#     '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
+#     'J': 11, 'Q': 12, 'K': 13, 'A': 14, '2': 15, 'joker': 16, 'JOKER': 17,
+#     '': 0, '方片♦': 0.1, '梅花♣': 0.2, '红心♥': 0.3, '黑桃♠': 0.4
+# }
+
 POKER_SIZE = {
     '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, '10': 10,
-    'J': 11, 'Q': 12, 'K': 13, 'A': 14, '2': 15, '小王': 16, '大王': 17,
-    '': 0, '方片♦': 0.1, '梅花♣': 0.2, '红心♥': 0.3, '黑桃♠': 0.4
+    'J': 11, 'Q': 12, 'K': 13, 'A': 14, '2': 15, 'joker': 16, 'JOKER': 17,
+    '': 0, '♦': 0.1, '♣': 0.2, '♥': 0.3, '♠': 0.4
 }
 
 
@@ -71,11 +79,14 @@ class Pokers(object):
     A series of pokers.
     """
 
-    def __init__(self):
+    def __init__(self, pokers=None):
         """
         Init pokers.
         """
-        self._pokers = []
+        if pokers is None:
+            pokers = []
+
+        self._pokers = pokers
 
     def __str__(self):
         """
@@ -89,10 +100,56 @@ class Pokers(object):
         return str(pokers)
 
     def sortPokers(self):
-        self._pokers.sort(reverse=True)
+        self._pokers.sort(reverse=False)
 
-    def getType(self):
-        pass
+    def formatPokers(self):
+        rlt = self._pokers.copy()
+        for idx, poker in enumerate(self._pokers):
+            rlt[idx] = POKER_SIZE[poker.getNum()]
+
+        return rlt
+
+    def __lt__(self, other):
+        left_format_pokers = self.formatPokers()
+        right_format_pokers = other.formatPokers()
+
+        left_len = len(left_format_pokers)
+        right_len = len(right_format_pokers)
+
+        method = 0
+        if left_len == right_len:
+            if left_len == 1:
+                # 1 poker
+                method = 1
+            elif left_len == 2:
+                # 2 pokers
+                if left_format_pokers[0] == left_format_pokers[1] and right_format_pokers[0] == right_format_pokers[1]:
+                    # pair
+                    method = 1
+                elif left_format_pokers[0] == 16 and left_format_pokers[1] == 17:
+                    # joker boom
+                    return False
+                elif right_format_pokers[0] == 16 and right_format_pokers[1] == 17:
+                    # joker boom
+                    return True
+                else:
+                    return False
+            elif left_len == 3:
+                pass
+
+            pass
+        else:
+            pass
+
+        methods = {
+            1: self.compareFirstValue
+        }
+
+        return methods[method](left_format_pokers, right_format_pokers)
+
+    @staticmethod
+    def compareFirstValue(left, right):
+        return left[0] < right[0]
 
 
 class PokerStack(Pokers):
@@ -120,7 +177,7 @@ class PokerStack(Pokers):
                 self._pokers.append(poker)
 
         for king in POKER_KING:
-            poker = Poker(king, '')
+            poker = Poker('', king)
             self._pokers.append(poker)
 
     def shufflePokerStack(self):
@@ -142,7 +199,7 @@ class PokerStack(Pokers):
             if self._pokers:
                 pokers.append(self._pokers.pop())
             else:
-                print('Error 01')
+                raise ValueError('Error 01')
 
         return pokers
 
@@ -184,7 +241,7 @@ class SimpleLandlordPoker(Pokers):
 
 def main():
     poker_stack = PokerStack()
-    print(poker_stack)
+    # print(poker_stack)
 
     player_a = SimplePlayer(0, poker_stack)
     player_b = SimplePlayer(1, poker_stack)
@@ -197,6 +254,15 @@ def main():
     print(landlord_three)
 
     print(poker_stack)
+    # print(player_a < landlord_three)
+
+    # pokers_a = Pokers([Poker('♦', '3')])
+    # pokers_b = Pokers([Poker('♦', '4')])
+
+    pokers_a = Pokers([Poker('♦', '3'), Poker('♣', '3')])
+    pokers_b = Pokers([Poker('', 'joker'), Poker('', 'JOKER')])
+
+    print(pokers_a < pokers_b)
     pass
 
 
