@@ -24,12 +24,18 @@
     <ClCompile Include="game.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="cardtype.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="poker.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="game.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="cardtype.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

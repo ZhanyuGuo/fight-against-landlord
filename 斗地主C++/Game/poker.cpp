@@ -5,6 +5,8 @@
 
 namespace PokerGame
 {
+
+#pragma region PokerCard
 	PokerCard::PokerCard()
 	{
 		this->id = 0;
@@ -156,8 +158,10 @@ namespace PokerGame
 			return static_cast<PokerColor>(color_num);
 		}
 	}
+#pragma endregion
 
 
+#pragma region 基于ID的CardCollection
 	int IdBasedCardCollection::Count()
 	{
 		return this->cards.size();
@@ -240,9 +244,10 @@ namespace PokerGame
 	{
 		this->cards.reserve(reserved);
 	}
+#pragma endregion
 
 
-
+#pragma region 只能拿取的牌堆
 	PokerCardCollection& TakeOnlyCardCollection::operator<<(PokerCardId cardId)
 	{
 		throw NotSupportedException();
@@ -250,13 +255,11 @@ namespace PokerGame
 
 	PokerCardCollection& TakeOnlyCardCollection::operator<<(PokerCard card)
 	{
-		// TODO: 在此处插入 return 语句
 		throw NotSupportedException();
 	}
 
 	PokerCardCollection& TakeOnlyCardCollection::operator<<(PokerCardCollection& collection)
 	{
-		// TODO: 在此处插入 return 语句
 		throw NotSupportedException();
 	}
 
@@ -306,8 +309,10 @@ namespace PokerGame
 		std::default_random_engine g(time(0));
 		std::shuffle(this->cards.begin(), this->cards.end(), g);
 	}
+#pragma endregion
 
 
+#pragma region 有序的牌堆
 	class PokerCardComparatorFALStyleLessThan
 	{
 	public:
@@ -337,10 +342,10 @@ namespace PokerGame
 
 	using FAL_IsSmallerCard = PokerCardComparatorFALStyleLessThan;
 
-	PokerCardCollection& SortedCardCollection::PickOut(PokerCardCollection& picked)
-	{
-		throw NotImplementedException();
-	}
+	//PokerCardCollection& SortedCardCollection::PickOut(PokerCardCollection& picked)
+	//{
+	//	throw NotImplementedException();
+	//}
 
 	PokerCardCollection& SortedCardCollection::operator<<(PokerCardId cardId)
 	{
@@ -368,5 +373,6 @@ namespace PokerGame
 	{
 		std::sort(this->cards.begin(), this->cards.end(), FAL_IsSmallerCard());
 	}
+#pragma endregion
 
 }

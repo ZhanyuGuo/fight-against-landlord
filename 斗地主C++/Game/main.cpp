@@ -11,10 +11,11 @@ void test() noexcept
 }
 
 
+
 int main()
 {
 	//system("chcp 65001");
-	
+
 	using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
 	std::shared_ptr<PokerGame::FAL::Player>
 		p1(new Tester(string("Tom"))),

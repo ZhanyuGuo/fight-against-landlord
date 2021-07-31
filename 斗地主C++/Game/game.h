@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "poker.h"
+#include "cardtype.h"
 #include <memory>
 #include <string>
 
@@ -7,49 +8,7 @@ namespace PokerGame
 {
 	namespace FAL
 	{
-		enum class GeneralCardType
-		{
-			Dan,
-			Dui,
-			San,
-			Zha,
-			Shun,
-			LianDui,
-			FeiJi,
-			LianZha,
-			WangZha
-		};
-
-		class NotSameTypeException : public std::exception
-		{
-
-		};
-
-		class TypedCardCollection : public IdBasedCardCollection
-		{
-		public:
-			virtual GeneralCardType GetGeneralType() = 0;
-			virtual bool IsSameType(TypedCardCollection& other) = 0;
-			virtual bool IsLargerThan(TypedCardCollection& other) = 0;
-			virtual ~TypedCardCollection(){}
-		};
-
-
-		class DanZhangCollection : public TypedCardCollection
-		{
-		public:
-
-		private:
-			PokerCardId id;
-		};
-
-		class DuiZiColleciton : public TypedCardCollection
-		{
-		public:
-
-		private:
-			
-		};
+		
 
 		class CardEvent
 		{
@@ -57,22 +16,31 @@ namespace PokerGame
 			enum class MotionType {
 				Active, Follow, Pass
 			};
-			MotionType GetType() const;
-			std::shared_ptr<PokerCardCollection> GetContent() const;
+			virtual MotionType GetType() const;
+			virtual std::shared_ptr<PokerCardCollection> GetContent() const;
 			CardEvent(MotionType type);
 			CardEvent(MotionType type, std::shared_ptr<PokerCardCollection>& content);
-		private:
+		protected:
 			MotionType type;
 			std::shared_ptr<PokerCardCollection> content;
 		};
 
+		class TypedCardEvent : public CardEvent
+		{
+		public:
+			//using CardEvent::GetType;
+			virtual std::shared_ptr<PokerCardCollection> GetContent() const;
+			virtual std::shared_ptr<TypedCardCollection> GetTypedContent() const;
+			TypedCardEvent(MotionType type);
+			TypedCardEvent(MotionType type, std::shared_ptr<TypedCardCollection>& content);
+		};
 
 
 		class Player
 		{
 		public:
 			virtual int PrepareResponse(int leastPoint) noexcept = 0;
-			virtual CardEvent CardResponse(CardEvent e) noexcept = 0;
+			virtual CardEvent CardResponse(TypedCardEvent e) noexcept = 0;
 			virtual PokerCardCollection& GetCards() = 0;
 			virtual std::string GetName() = 0;
 			virtual void Reset() = 0;
@@ -116,7 +84,7 @@ namespace PokerGame
 		{
 		public:
 			virtual int PrepareResponse(int leastPoint) noexcept;
-			virtual CardEvent CardResponse(CardEvent e) noexcept;
+			virtual CardEvent CardResponse(TypedCardEvent e) noexcept;
 			virtual PokerCardCollection& GetCards();
 			virtual std::string GetName();
 			virtual void Reset();

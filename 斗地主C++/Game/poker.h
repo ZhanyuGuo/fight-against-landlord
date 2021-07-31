@@ -95,8 +95,8 @@ namespace PokerGame
 	class SortedCardCollection : public IdBasedCardCollection
 	{
 	public:
-		using IdBasedCardCollection::PickOut;
-		virtual PokerCardCollection& PickOut(PokerCardCollection& picked);
+		//using IdBasedCardCollection::PickOut;
+		//virtual PokerCardCollection& PickOut(PokerCardCollection& picked);
 		virtual PokerCardCollection& operator<< (PokerCardId cardId);
 		virtual PokerCardCollection& operator<< (PokerCard card);
 		virtual PokerCardCollection& operator<< (PokerCardCollection& collection);

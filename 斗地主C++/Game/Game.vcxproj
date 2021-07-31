@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="cardtype.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="poker.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cardtype.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="poker.h" />
   </ItemGroup>
