@@ -145,6 +145,18 @@ def testPokerType():
         [Poker('♦', '3'), Poker('♥', '4'), Poker('♣', '5'), Poker('♠', '6'), Poker('♠', '7'), Poker('♠', '8'),
          Poker('♠', '9'), Poker('♠', '10')])
     print(poker.getType())
+
+    # 8910JQK2A
+    poker = Pokers(
+        [Poker('♦', '8'), Poker('♥', '9'), Poker('♣', '10'), Poker('♠', 'J'), Poker('♠', 'Q'), Poker('♠', 'K'),
+         Poker('♠', 'A'), Poker('♠', '2')])
+    print(poker.getType())
+
+    # 8910JQKA
+    poker = Pokers(
+        [Poker('♦', '8'), Poker('♥', '9'), Poker('♣', '10'), Poker('♠', 'J'), Poker('♠', 'Q'), Poker('♠', 'K'),
+         Poker('♠', 'A')])
+    print(poker.getType())
     pass
 
 

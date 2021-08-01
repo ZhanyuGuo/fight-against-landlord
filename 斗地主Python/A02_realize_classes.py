@@ -33,6 +33,7 @@ class PokerType(Enum):
     single_boom = 10
     double_boom = 11
     joker_boom = 12
+    empty = 13
 
 
 class Poker(object):
@@ -99,8 +100,8 @@ class Pokers(object):
         if pokers is None:
             pokers = []
 
-        self._pokers = pokers
-        self.format_pokers = []
+        self.pokers = pokers
+        self.formatpokers = []
         self._type = None
 
     def __str__(self) -> str:
@@ -110,17 +111,17 @@ class Pokers(object):
         :return: all pokers.
         """
         pokers = []
-        for poker in self._pokers:
+        for poker in self.pokers:
             pokers.append(str(poker))
         return str(pokers)
 
-    def _sortPokers(self):
+    def sortPokers(self):
         """
         Sort the pokers according to color and number.
 
         :return: None
         """
-        self._pokers.sort(reverse=False)
+        self.pokers.sort(reverse=False)
         self._formatPokers()
 
     def _formatPokers(self):
@@ -129,9 +130,9 @@ class Pokers(object):
 
         :return: None
         """
-        self.format_pokers = self._pokers.copy()
-        for idx, poker in enumerate(self._pokers):
-            self.format_pokers[idx] = POKER_VALUE[poker.getNum()]
+        self.formatpokers = self.pokers.copy()
+        for idx, poker in enumerate(self.pokers):
+            self.formatpokers[idx] = POKER_VALUE[poker.getNum()]
 
     def _isContinuous(self) -> bool:
         """
@@ -140,6 +141,8 @@ class Pokers(object):
         :return: whether keys are continuous.
         """
         keys = sorted(self.getRepeatDict().keys())
+        if keys[-1] > 14:
+            return False
         dif = keys[-1] - keys[0]
         return dif == len(keys) - 1
 
@@ -150,7 +153,7 @@ class Pokers(object):
         :return: a frequency dictionary.
         """
         tmp_dict = {}
-        for poker in self.format_pokers:
+        for poker in self.formatpokers:
             tmp_dict[poker] = tmp_dict.get(poker, 0) + 1
         return tmp_dict
 
@@ -160,9 +163,9 @@ class Pokers(object):
 
         :return: pokers type.
         """
-        self._sortPokers()
+        self.sortPokers()
 
-        length = len(self.format_pokers)
+        length = len(self.formatpokers)
         repeat_dict = self.getRepeatDict()
 
         repeat_values = repeat_dict.values()
@@ -171,12 +174,14 @@ class Pokers(object):
         sorted_repeat_values = sorted(repeat_values, reverse=True)
         sorted_repeat_items = sorted(repeat_items, key=lambda x: x[1], reverse=True)
 
-        if length == 1:
+        if length == 0:
+            self._type = PokerType.empty
+        elif length == 1:
             self._type = PokerType.single
         elif length == 2:
             if sorted_repeat_values[0] == 2:
                 self._type = PokerType.double
-            elif self.format_pokers[0] == 16 and self.format_pokers[1] == 17:
+            elif self.formatpokers[0] == 16 and self.formatpokers[1] == 17:
                 self._type = PokerType.joker_boom
             else:
                 self._type = PokerType.none_type
@@ -269,9 +274,14 @@ class Pokers(object):
         left_type = self.getType()
         right_type = other.getType()
 
-        if right_type == PokerType.single:
+        if right_type == PokerType.empty:
+            if left_type == PokerType.none_type:
+                return False
+            else:
+                return True
+        elif right_type == PokerType.single:
             if left_type == PokerType.single:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                return self._compareFirstValue(self.formatpokers, other.formatpokers)
             elif left_type == PokerType.single_boom or left_type == PokerType.joker_boom \
                     or left_type == PokerType.double_boom:
                 return True
@@ -279,7 +289,7 @@ class Pokers(object):
                 return False
         elif right_type == PokerType.double:
             if left_type == PokerType.double:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                return self._compareFirstValue(self.formatpokers, other.formatpokers)
             elif left_type == PokerType.single_boom or left_type == PokerType.joker_boom \
                     or left_type == PokerType.double_boom:
                 return True
@@ -287,7 +297,7 @@ class Pokers(object):
                 return False
         elif right_type == PokerType.triple:
             if left_type == PokerType.triple:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                return self._compareFirstValue(self.formatpokers, other.formatpokers)
             elif left_type == PokerType.single_boom or left_type == PokerType.joker_boom \
                     or left_type == PokerType.double_boom:
                 return True
@@ -319,7 +329,10 @@ class Pokers(object):
                 return False
         elif right_type == PokerType.continuous_single:
             if left_type == PokerType.continuous_single:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                if len(self.formatpokers) == len(other.formatpokers):
+                    return self._compareFirstValue(self.formatpokers, other.formatpokers)
+                else:
+                    return False
             elif left_type == PokerType.single_boom or left_type == PokerType.joker_boom \
                     or left_type == PokerType.double_boom:
                 return True
@@ -327,16 +340,21 @@ class Pokers(object):
                 return False
         elif right_type == PokerType.continuous_double:
             if left_type == PokerType.continuous_double:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                if len(self.formatpokers) == len(other.formatpokers):
+                    return self._compareFirstValue(self.formatpokers, other.formatpokers)
+                else:
+                    return False
             elif left_type == PokerType.single_boom or left_type == PokerType.joker_boom \
                     or left_type == PokerType.double_boom:
                 return True
             else:
                 return False
         elif right_type == PokerType.plane:
-            # todo: compare two plane
             if left_type == PokerType.plane:
-                pass
+                if len(self.formatpokers) == len(other.formatpokers):
+                    return self._compareFirstMostValue(other)
+                else:
+                    return False
             elif left_type == PokerType.single_boom or left_type == PokerType.joker_boom \
                     or left_type == PokerType.double_boom:
                 return True
@@ -344,7 +362,7 @@ class Pokers(object):
                 return False
         elif right_type == PokerType.single_boom:
             if left_type == PokerType.single_boom:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                return self._compareFirstValue(self.formatpokers, other.formatpokers)
             elif left_type == PokerType.joker_boom or left_type == PokerType.double_boom:
                 return True
             else:
@@ -356,12 +374,9 @@ class Pokers(object):
                 return False
         elif right_type == PokerType.double_boom:
             if left_type == PokerType.double_boom:
-                return self._compareFirstValue(self.format_pokers, other.format_pokers)
+                return self._compareFirstValue(self.formatpokers, other.formatpokers)
             else:
                 return False
-            pass
-
-        pass
 
     @staticmethod
     def _compareFirstValue(left, right):
@@ -380,8 +395,22 @@ class Pokers(object):
         return sorted_left_item[0][0] > sorted_right_item[0][0]
 
     def _compareFirstMostValue(self, other):
-        # todo: first most value.
-        pass
+        left_dict = self.getRepeatDict()
+        right_dict = other.getRepeatDict()
+
+        left_value = left_dict.values()
+
+        left_item = left_dict.items()
+        right_item = right_dict.items()
+
+        most_count = max(left_value)
+        left_most_count_key = [item[0] for item in left_item if item[1] == most_count]
+        right_most_count_key = [item[0] for item in right_item if item[1] == most_count]
+
+        left_most_count_key.sort(reverse=True)
+        right_most_count_key.sort(reverse=True)
+
+        return left_most_count_key[0] > right_most_count_key[0]
 
 
 class PokerStack(Pokers):
@@ -406,11 +435,11 @@ class PokerStack(Pokers):
         for color in POKER_COLOR:
             for number in POKER_NUMBER:
                 poker = Poker(color, number)
-                self._pokers.append(poker)
+                self.pokers.append(poker)
 
         for king in POKER_KING:
             poker = Poker('', king)
-            self._pokers.append(poker)
+            self.pokers.append(poker)
 
     def __shufflePokerStack(self):
         """
@@ -419,7 +448,7 @@ class PokerStack(Pokers):
         :return: None.
         """
         # random.seed(20210730)
-        random.shuffle(self._pokers)
+        random.shuffle(self.pokers)
 
     def getPokers(self, n=1) -> list:
         """
@@ -430,8 +459,8 @@ class PokerStack(Pokers):
         """
         pokers = []
         for _ in range(n):
-            if self._pokers:
-                pokers.append(self._pokers.pop())
+            if self.pokers:
+                pokers.append(self.pokers.pop())
             else:
                 raise ValueError('[Error 01] Stack empty.')
 
@@ -451,9 +480,29 @@ class SimplePlayer(Pokers):
         :param pokers: a poker stack.
         """
         super().__init__()
-        self.__id = id_
-        self._pokers = pokers.getPokers(17)
-        self._sortPokers()
+        self.id = id_
+        self.pokers = pokers.getPokers(17)
+        self.sortPokers()
+
+    def showPokers(self):
+        for idx, poker in enumerate(self.pokers):
+            print(f"[{idx}]:", end='')
+            print(poker, end=' ')
+        print()
+
+    def outPoker(self, index: list, previous: Pokers):
+        index.sort(reverse=True)
+        out = Pokers()
+        for idx in index:
+            out.pokers.append(self.pokers[idx])
+        out.sortPokers()
+        if out > previous:
+            print(out)
+            for idx in index:
+                self.pokers.pop(idx)
+            return out
+        else:
+            return None
 
 
 class SimpleLandlordPoker(Pokers):
@@ -461,16 +510,14 @@ class SimpleLandlordPoker(Pokers):
     A simple landlord poker.
     """
 
-    def __init__(self, id_, pokers: PokerStack):
+    def __init__(self, pokers: PokerStack):
         """
         Init a simple landlord poker.
 
-        :param id_: player's id.
         :param pokers: a poker stack.
         """
         super().__init__()
-        self.__id = id_
-        self._pokers = pokers.getPokers(3)
+        self.pokers = pokers.getPokers(3)
 
 
 def main():
@@ -479,14 +526,18 @@ def main():
     player_a = SimplePlayer(0, poker_stack)
     player_b = SimplePlayer(1, poker_stack)
     player_c = SimplePlayer(2, poker_stack)
-    landlord_three = SimpleLandlordPoker(3, poker_stack)
+    landlord_three = SimpleLandlordPoker(poker_stack)
 
-    print(player_a)
-    print(player_b)
-    print(player_c)
-    print(landlord_three)
+    # print(player_a)
+    # print(player_b)
+    # print(player_c)
+    # print(landlord_three)
+    player_a.showPokers()
+    index = list(map(int, input('出牌：（空格间隔）\r\n').split()))
+    player_a.outPoker(index, Pokers())
+    player_a.showPokers()
 
-    print(poker_stack)
+    # print(poker_stack)
     pass
 
 
