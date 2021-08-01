@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# @Time    : 2021/7/30 23:41
+# @Time    : 2021/8/1 14:57
 # @Author  : Zhanyu Guo
 # @Email   : 942568052@qq.com
-# @File    : A03_game_begin.py
+# @File    : game.py
 # @Software: PyCharm
-from A02_realize_classes import *
+from base import *
 
 
 class Game(object):
@@ -87,7 +87,7 @@ class Game(object):
             cmd = list(map(int, input('选择牌号（空格间隔），或输入-1跳过:\r\n').split()))
             if len(cmd) == 0:
                 continue
-            if cmd[0] == -1:
+            elif cmd[0] == -1:
                 if previous.getType() == PokerType.empty:
                     print('不可跳过')
                     continue
@@ -136,13 +136,13 @@ class Game(object):
                 self.run_a_game()
             else:
                 continue
-        pass
+            if input('开始下一局？y/[n]') != 'y':
+                break
 
 
 def main():
     game = Game()
     game.run()
-    pass
 
 
 if __name__ == '__main__':
