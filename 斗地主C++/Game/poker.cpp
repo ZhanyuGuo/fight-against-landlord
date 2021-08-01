@@ -45,6 +45,11 @@ namespace PokerGame
 	PokerPoint PokerCard::Get3BasedNum() const
 	{
 		PokerPoint point = this->GetPoint();
+		return NormalPointTo3BasedNum(point);
+	}
+
+	PokerPoint PokerCard::NormalPointTo3BasedNum(PokerPoint point)
+	{
 		if (point == 14 || point == 15)
 		{
 			return point;

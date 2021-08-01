@@ -32,6 +32,7 @@ namespace PokerGame
 		virtual PokerColor GetColor() const;
 		virtual PokerPoint GetPoint() const;
 		virtual PokerPoint Get3BasedNum() const;
+		static PokerPoint NormalPointTo3BasedNum(PokerPoint point);
 		virtual std::string ToString() const;
 		virtual std::string ToString(bool styled) const;
 	private:

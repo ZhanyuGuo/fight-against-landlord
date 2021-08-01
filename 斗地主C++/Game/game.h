@@ -10,7 +10,7 @@ namespace PokerGame
 	{
 		
 
-		class CardEvent
+		class CardEventArgs
 		{
 		public:
 			enum class MotionType {
@@ -18,21 +18,21 @@ namespace PokerGame
 			};
 			virtual MotionType GetType() const;
 			virtual std::shared_ptr<PokerCardCollection> GetContent() const;
-			CardEvent(MotionType type);
-			CardEvent(MotionType type, std::shared_ptr<PokerCardCollection>& content);
+			CardEventArgs(MotionType type);
+			CardEventArgs(MotionType type, std::shared_ptr<PokerCardCollection>& content);
 		protected:
 			MotionType type;
 			std::shared_ptr<PokerCardCollection> content;
 		};
 
-		class TypedCardEvent : public CardEvent
+		class TypedCardEventArgs : public CardEventArgs
 		{
 		public:
-			//using CardEvent::GetType;
+			//using CardEventArgs::GetType;
 			virtual std::shared_ptr<PokerCardCollection> GetContent() const;
 			virtual std::shared_ptr<TypedCardCollection> GetTypedContent() const;
-			TypedCardEvent(MotionType type);
-			TypedCardEvent(MotionType type, std::shared_ptr<TypedCardCollection>& content);
+			TypedCardEventArgs(MotionType type);
+			TypedCardEventArgs(MotionType type, std::shared_ptr<TypedCardCollection>& content);
 		};
 
 
@@ -40,7 +40,7 @@ namespace PokerGame
 		{
 		public:
 			virtual int PrepareResponse(int leastPoint) noexcept = 0;
-			virtual CardEvent CardResponse(TypedCardEvent e) noexcept = 0;
+			virtual CardEventArgs CardResponse(TypedCardEventArgs e) noexcept = 0;
 			virtual PokerCardCollection& GetCards() = 0;
 			virtual std::string GetName() = 0;
 			virtual void Reset() = 0;
@@ -84,7 +84,7 @@ namespace PokerGame
 		{
 		public:
 			virtual int PrepareResponse(int leastPoint) noexcept;
-			virtual CardEvent CardResponse(TypedCardEvent e) noexcept;
+			virtual CardEventArgs CardResponse(TypedCardEventArgs e) noexcept;
 			virtual PokerCardCollection& GetCards();
 			virtual std::string GetName();
 			virtual void Reset();

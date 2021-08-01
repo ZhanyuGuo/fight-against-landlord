@@ -77,27 +77,29 @@ namespace PokerGame
 		{
 			int startIndex = rand() % 3;
 			int leastPoint = 0;
+			int willingness = 0;
+			this->LandlordSelected = false;
 			for (int i = 0; i < PlayerNum; i++)
 			{
 				int playerIndex = (i + startIndex) % 3;
-				int willingness = this->players[playerIndex]->PrepareResponse(leastPoint);
+				willingness = this->players[playerIndex]->PrepareResponse(leastPoint);
 				if (willingness > leastPoint)
 				{
 					leastPoint = willingness;
+					this->LandlordSelected = true;
 					this->LandlordIndex = playerIndex;
 					if (leastPoint == 3)
 					{
 						break;
 					}
 				}
+				else
+				{
+					leastPoint += 1;
+				}
 			}
-			if (leastPoint == 0)
-			{
-				this->LandlordSelected = false;
-			}
-			else
-			{
-				this->LandlordSelected = true;
+			if (this->LandlordSelected)
+			{			
 				this->Magnification *= leastPoint;
 				this->players[this->LandlordIndex]->GetCards() << *(this->LordCards);
 			}
@@ -107,7 +109,7 @@ namespace PokerGame
 		{
 			int idx = this->LandlordIndex;
 			int passed = 0;
-			using State = CardEvent::MotionType;
+			using State = CardEventArgs::MotionType;
 			State currentState = State::Active;
 
 			std::shared_ptr<TypedCardCollection> currentCards(nullptr);
@@ -115,7 +117,7 @@ namespace PokerGame
 			{
 				if (currentState == State::Active)
 				{
-					TypedCardEvent activeMotionInfo(State::Active);
+					TypedCardEventArgs activeMotionInfo(State::Active);
 					auto activeResponse = this->players[idx]->CardResponse(activeMotionInfo);
 					if (this->players[idx]->GetCards().Count() == 0)
 					{
@@ -128,7 +130,7 @@ namespace PokerGame
 				}
 				else
 				{
-					TypedCardEvent followMotionInfo(State::Follow, currentCards);
+					TypedCardEventArgs followMotionInfo(State::Follow, currentCards);
 					auto followResponse = this->players[idx]->CardResponse(followMotionInfo);
 					if (this->players[idx]->GetCards().Count() == 0)
 					{
@@ -156,48 +158,48 @@ namespace PokerGame
 		}
 #pragma endregion
 
-#pragma region CardEvent
-		CardEvent::MotionType CardEvent::GetType() const
+#pragma region CardEventArgs
+		CardEventArgs::MotionType CardEventArgs::GetType() const
 		{
 			return this->type;
 		}
 
-		std::shared_ptr<PokerCardCollection> CardEvent::GetContent() const
+		std::shared_ptr<PokerCardCollection> CardEventArgs::GetContent() const
 		{
 			return this->content;
 		}
 
-		CardEvent::CardEvent(MotionType type)
+		CardEventArgs::CardEventArgs(MotionType type)
 		{
 			this->type = type;
 			this->content = std::shared_ptr<PokerCardCollection>(nullptr);
 		}
 
-		CardEvent::CardEvent(MotionType type, std::shared_ptr<PokerCardCollection>& content)
+		CardEventArgs::CardEventArgs(MotionType type, std::shared_ptr<PokerCardCollection>& content)
 		{
 			this->type = type;
 			this->content = content;
 		}
 #pragma endregion
 
-#pragma region TypedCardEvent
+#pragma region TypedCardEventArgs
 
-		std::shared_ptr<PokerCardCollection> TypedCardEvent::GetContent() const
+		std::shared_ptr<PokerCardCollection> TypedCardEventArgs::GetContent() const
 		{
 			return this->content;
 		}
 
-		std::shared_ptr<TypedCardCollection> TypedCardEvent::GetTypedContent() const
+		std::shared_ptr<TypedCardCollection> TypedCardEventArgs::GetTypedContent() const
 		{
 			return std::dynamic_pointer_cast<TypedCardCollection>(this->content);
 		}
 
-		TypedCardEvent::TypedCardEvent(MotionType type) : CardEvent(type)
+		TypedCardEventArgs::TypedCardEventArgs(MotionType type) : CardEventArgs(type)
 		{
 			this->content = std::shared_ptr<TypedCardCollection>(nullptr);
 		}
 
-		TypedCardEvent::TypedCardEvent(MotionType type, std::shared_ptr<TypedCardCollection>& content) : CardEvent(type)
+		TypedCardEventArgs::TypedCardEventArgs(MotionType type, std::shared_ptr<TypedCardCollection>& content) : CardEventArgs(type)
 		{
 			this->content = content;
 		}
@@ -211,25 +213,25 @@ namespace PokerGame
 			return 3;
 		}
 
-		CardEvent StupidLocalPlayerForDebugging::CardResponse(TypedCardEvent e) noexcept
+		CardEventArgs StupidLocalPlayerForDebugging::CardResponse(TypedCardEventArgs e) noexcept
 		{
 			int c = this->cards.Count();
 			switch (e.GetType())
 			{
-			case CardEvent::MotionType::Active:
+			case CardEventArgs::MotionType::Active:
 			{
 				PokerCard card = this->cards.PickOut(c - 1);
 				std::shared_ptr<PokerCardCollection> cl(new DanZhangCollection(card));
 				std::cout << this->name << std::string(":打出了") << card.ToString(true) << std::endl;
-				return CardEvent(CardEvent::MotionType::Follow, cl);
+				return CardEventArgs(CardEventArgs::MotionType::Follow, cl);
 				break;
 			}
-			case CardEvent::MotionType::Follow:
+			case CardEventArgs::MotionType::Follow:
 			{
 				if (e.GetTypedContent()->GetGeneralType() != GeneralCardType::Dan)
 				{
 					std::cout << this->name << std::string(":跳过") << std::endl;
-					return CardEvent(CardEvent::MotionType::Pass);
+					return CardEventArgs(CardEventArgs::MotionType::Pass);
 				}
 				PokerCard largestCard = this->cards[c - 1];
 				if (largestCard.Get3BasedNum() > (*(e.GetContent()))[0].Get3BasedNum())
@@ -237,14 +239,18 @@ namespace PokerGame
 					this->cards.PickOut(c - 1);
 					std::shared_ptr<PokerCardCollection> cle(new DanZhangCollection(largestCard));
 					std::cout << this->name << std::string(":跟随了") << largestCard.ToString(true) << std::endl;
-					return CardEvent(CardEvent::MotionType::Follow, cle);
+					return CardEventArgs(CardEventArgs::MotionType::Follow, cle);
 				}
 				else
 				{
 					std::cout << this->name << std::string(":跳过") << std::endl;
-					return CardEvent(CardEvent::MotionType::Pass);
+					return CardEventArgs(CardEventArgs::MotionType::Pass);
 				}
 				break;
+			}
+			default:
+			{
+				return CardEventArgs(CardEventArgs::MotionType::Pass);
 			}
 			}
 		}

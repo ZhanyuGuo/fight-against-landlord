@@ -10,11 +10,19 @@ void test() noexcept
 	throw std::exception();
 }
 
+class A {
+public:
+	A()
+	{
+		throw PokerGame::FAL::NotSameTypeException();
+	}
+};
 
 
 int main()
 {
 	//system("chcp 65001");
+
 
 	using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
 	std::shared_ptr<PokerGame::FAL::Player>
