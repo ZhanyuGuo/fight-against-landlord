@@ -23,7 +23,7 @@ class Game(object):
         return new_player
 
     def setLandlord(self, player: SimplePlayer):
-        player.pokers.extend(self.landlord_pokers.pokers)
+        player.extendPokers(self.landlord_pokers.getPokers())
         player.sortPokers()
         self.landlord_id = player.id
 
@@ -69,9 +69,9 @@ class Game(object):
         skip_cnt = 0
         while True:
             print('========================================')
-            length_0 = len(player_0.pokers)
-            length_1 = len(player_1.pokers)
-            length_2 = len(player_2.pokers)
+            length_0 = len(player_0.getPokers())
+            length_1 = len(player_1.getPokers())
+            length_2 = len(player_2.getPokers())
             if not length_0 or not length_1 or not length_2:
                 break
 
