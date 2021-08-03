@@ -1,5 +1,6 @@
 #include "cardtype.h"
 #include <map>
+#include <algorithm>
 
 
 namespace PokerGame
@@ -54,7 +55,7 @@ namespace PokerGame
 				PokerCard selfCard(this->cards[0]), otherCard(otherDan->cards[0]);
 				PokerPoint selfNum = selfCard.Get3BasedNum(), otherNum = otherCard.Get3BasedNum();
 				return selfNum > otherNum;
-			}			
+			}
 		}
 
 		std::shared_ptr<TypedCardCollection> DanZhangCollection::FormatCollection(PokerCardCollection& collection)
@@ -142,10 +143,10 @@ namespace PokerGame
 
 
 #pragma endregion
-		
+
 #pragma region ÈýÕÅ
 
-		GeneralCardType SanZhangCollection::GetGeneralType() 
+		GeneralCardType SanZhangCollection::GetGeneralType()
 		{
 			return GeneralCardType::San;
 		}
@@ -184,9 +185,13 @@ namespace PokerGame
 			try
 			{
 				SanZhangCollection* san = new SanZhangCollection(collection);
+				if (!this->IsSameType(*san))
+				{
+					throw NotSameTypeException();
+				}
 				return std::shared_ptr<SanZhangCollection>(san);
 			}
-			catch(NotSameTypeException)
+			catch (NotSameTypeException)
 			{
 				throw;
 			}
@@ -194,14 +199,9 @@ namespace PokerGame
 
 		SanZhangCollection::SanZhangCollection(PokerCardCollection& collection)
 		{
-			std::map<PokerPoint, int> cardRepitition;
-			for (int i = 0; i < collection.Count(); i++)
-			{
-				PokerCard card = collection[i];
-				PokerPoint point = card.GetPoint();
-				cardRepitition[point] += 1;
-			}
-			if (cardRepitition.size() == 1) 
+			CardRepetitionDict cardRepitition;
+			cardRepitition = PokerCardCollection::GetCardRepetition(collection);
+			if (cardRepitition.size() == 1)
 			{
 				auto item = cardRepitition.begin();
 				if (item->second == 3)
@@ -240,11 +240,15 @@ namespace PokerGame
 							throw NotSameTypeException();
 						}
 
-					}				
+					}
 				}
 				if (!(gotMain && gotAttached))
 				{
 					throw NotSameTypeException();
+				}
+				else
+				{
+					*this << collection;
 				}
 			}
 			else
@@ -255,6 +259,199 @@ namespace PokerGame
 
 
 #pragma endregion
+
+#pragma region Ë³×Ó
+		GeneralCardType ShunZiCollection::GetGeneralType()
+		{
+			return GeneralCardType::Shun;
+		}
+
+		bool ShunZiCollection::IsSameType(TypedCardCollection& other)
+		{
+			if (other.GetGeneralType() != GeneralCardType::Shun)
+			{
+				return false;
+			}
+			else
+			{
+				return this->Count() == other.Count();
+			}
+		}
+
+		bool ShunZiCollection::IsLargerThan(TypedCardCollection& other)
+		{
+			if (!this->IsSameType(other))
+			{
+				return false;
+			}
+			else
+			{
+				ShunZiCollection* otherShun = dynamic_cast<ShunZiCollection*>(&other);
+				return this->upper3BasedPoint > otherShun->upper3BasedPoint;
+			}
+		}
+
+		std::shared_ptr<TypedCardCollection> ShunZiCollection::FormatCollection(PokerCardCollection& collection)
+		{
+			try
+			{
+				ShunZiCollection* shun = new ShunZiCollection(collection);
+				if (!this->IsSameType(*shun))
+				{
+					throw NotSameTypeException();
+				}
+				return std::shared_ptr<ShunZiCollection>(shun);
+			}
+			catch (NotSameTypeException)
+			{
+				throw;
+			}
+		}
+
+		ShunZiCollection::ShunZiCollection(PokerCardCollection& collection)
+		{
+			CardRepetitionDict repetition = collection.GetCardRepetition(collection);
+			std::vector<PokerPoint> card3BasedNums;
+			for (auto pair : repetition)
+			{
+				if (pair.second != 1)
+				{
+					throw NotSameTypeException();
+				}
+				else
+				{
+					PokerPoint threeBaseNum = PokerCard::NormalPointTo3BasedNum(pair.first);
+					if (threeBaseNum <= 12)
+					{
+						card3BasedNums.push_back(threeBaseNum);
+					}
+					else
+					{
+						throw NotSameTypeException();
+					}
+				}
+			}
+			std::sort(card3BasedNums.begin(), card3BasedNums.end());
+			int count = card3BasedNums.size();
+			if (count < 5)
+			{
+				throw NotSameTypeException();
+			}
+			int dif = card3BasedNums[count - 1] - card3BasedNums[0];
+			if ((count - dif) == 1)
+			{
+				*this << collection;
+				std::sort(this->cards.begin(), this->cards.end(), FAL_IsSmallerCard());
+				this->lower3BasedPoint = card3BasedNums[0];
+				this->upper3BasedPoint = this->lower3BasedPoint + dif;
+			}
+			else
+			{
+				throw NotSameTypeException();
+			}
+		}
+#pragma endregion
+
+#pragma region Õ¨µ¯
+		GeneralCardType ZhaDanCollection::GetGeneralType()
+		{
+			return GeneralCardType::Zha;
+		}
+
+		bool ZhaDanCollection::IsSameType(TypedCardCollection& other)
+		{
+			return other.GetGeneralType() == GeneralCardType::Zha;
+		}
+
+		bool ZhaDanCollection::IsLargerThan(TypedCardCollection& other)
+		{
+			switch (other.GetGeneralType())
+			{
+			case GeneralCardType::Zha:
+			{
+				ZhaDanCollection* otherZha = dynamic_cast<ZhaDanCollection*>(&other);
+				return this->threeBasedNum > otherZha->threeBasedNum;
+			}
+			case GeneralCardType::LianZha:
+			{
+				return false;
+			}
+			case GeneralCardType::WangZha:
+			{
+				return false;
+			}
+			default:
+				return true;
+				break;
+			}
+		}
+
+		std::shared_ptr<TypedCardCollection> ZhaDanCollection::FormatCollection(PokerCardCollection& collection)
+		{
+			try
+			{
+				ZhaDanCollection* zha = new ZhaDanCollection(collection);
+				return std::shared_ptr<ZhaDanCollection>(zha);
+			}
+			catch (NotSameTypeException)
+			{
+				throw;
+			}
+		}
+
+		ZhaDanCollection::ZhaDanCollection(PokerCardCollection& collection)
+		{
+			if (collection.Count() != 4)
+			{
+				throw NotSameTypeException();
+			}
+			else
+			{
+				CardRepetitionDict repetition = PokerCardCollection::GetCardRepetition(collection);
+				if (repetition.size() != 1)
+				{
+					throw NotSameTypeException();
+				}
+				else
+				{
+					PokerPoint point = repetition.begin()->first;
+					this->threeBasedNum = PokerCard::NormalPointTo3BasedNum(point);
+					*this << collection;
+				}
+			}
+		}
+#pragma endregion
+
+
+		TypedCardCollection& TypedCardCollection::TryCast(PokerCardCollection& collection)
+		{
+			TypedCardCollection* typedCol = nullptr;
+			try { typedCol = new DanZhangCollection(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+			try { typedCol = new DuiZiColleciton(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+			try { typedCol = new SanZhangCollection(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+			try { typedCol = new ShunZiCollection(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+			try { typedCol = new ZhaDanCollection(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+
+			throw InvalidTypeException();
+		}
+
+		TypedCardCollection& TypedCardCollection::TryCastZhaDanOnly(PokerCardCollection& collection)
+		{
+			TypedCardCollection* typedCol = nullptr;
+
+			try { typedCol = new ZhaDanCollection(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+
+			throw InvalidTypeException();
+		}
+
+
+
 	}
 }
 

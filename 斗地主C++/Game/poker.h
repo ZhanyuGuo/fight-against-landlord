@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <vector>
+#include <map>
 
 namespace PokerGame
 {
@@ -39,6 +40,8 @@ namespace PokerGame
 		PokerCardId id;
 	};
 
+	using CardRepetitionDict = std::map<PokerPoint, int>;
+
 	class PokerCardCollection
 	{
 	public:
@@ -54,7 +57,7 @@ namespace PokerGame
 		virtual bool ContainsCollection(PokerCardCollection& other) = 0;
 		virtual std::string ToString() = 0;
 		virtual ~PokerCardCollection() {}
-		
+		static CardRepetitionDict GetCardRepetition(PokerCardCollection& collection);
 	};
 
 	class IdBasedCardCollection : public PokerCardCollection
@@ -92,6 +95,15 @@ namespace PokerGame
 	private:
 		void Shuffle();
 	};
+
+	class PokerCardComparatorFALStyleLessThan
+	{
+	public:
+		bool operator()(PokerCard& left, PokerCard& right) const;
+		bool operator()(PokerCardId& leftId, PokerCardId& rightId) const;
+	};
+
+	using FAL_IsSmallerCard = PokerCardComparatorFALStyleLessThan;
 
 	class SortedCardCollection : public IdBasedCardCollection
 	{

@@ -16,6 +16,8 @@ public:
 	{
 		throw PokerGame::FAL::NotSameTypeException();
 	}
+private:
+	char a[0x7fffffff];
 };
 
 
@@ -24,7 +26,8 @@ int main()
 	//system("chcp 65001");
 
 
-	using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
+	//using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
+	using Tester = PokerGame::FAL::ManualLocalPlayer;
 	std::shared_ptr<PokerGame::FAL::Player>
 		p1(new Tester(string("Tom"))),
 		p2(new Tester(string("Foo"))),

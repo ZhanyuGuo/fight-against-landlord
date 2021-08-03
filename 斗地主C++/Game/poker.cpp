@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <random>
 #include <time.h>
+#include <stdexcept>
 
 namespace PokerGame
 {
@@ -166,6 +167,21 @@ namespace PokerGame
 #pragma endregion
 
 
+#pragma region PokerCardCollection
+	CardRepetitionDict PokerCardCollection::GetCardRepetition(PokerCardCollection& collection)
+	{
+		CardRepetitionDict repetition;
+		for (int i = 0; i < collection.Count(); i++)
+		{
+			PokerCard card = collection[i];
+			PokerPoint point = card.GetPoint();
+			repetition[point] += 1;
+		}
+		return repetition;
+	}
+#pragma endregion
+
+
 #pragma region 基于ID的CardCollection
 	int IdBasedCardCollection::Count()
 	{
@@ -181,7 +197,15 @@ namespace PokerGame
 
 	PokerCardCollection& IdBasedCardCollection::PickOut(PokerCardCollection& picked)
 	{
-		throw NotImplementedException();
+		for (int i = 0; i < picked.Count(); i++)
+		{
+			PokerCardId id = picked[i].GetId();
+			auto pos = std::find(this->cards.begin(), this->cards.end(), id);
+			if (pos != this->cards.end())
+			{
+				this->cards.erase(pos);
+			}
+		}
 		return *this;
 	}
 
@@ -208,7 +232,16 @@ namespace PokerGame
 
 	PokerCard IdBasedCardCollection::operator[](int index)
 	{
-		return PokerCard(this->cards[index]);
+		try
+		{
+			PokerCard card(this->cards.at(index));
+			return card;
+		} 
+		catch(std::out_of_range)
+		{
+			std::string err = std::string("index = ") + std::to_string(index);
+			throw std::out_of_range(err);
+		}	
 	}
 
 	bool IdBasedCardCollection::ContainsCard(PokerCard card)
@@ -318,34 +351,28 @@ namespace PokerGame
 
 
 #pragma region 有序的牌堆
-	class PokerCardComparatorFALStyleLessThan
+	bool PokerCardComparatorFALStyleLessThan::operator()(PokerCard& left, PokerCard& right) const
 	{
-	public:
-		bool operator()(PokerCard& left, PokerCard& right) const
+		PokerPoint
+			left_num = left.Get3BasedNum(),
+			right_num = right.Get3BasedNum();
+		if (left_num != right_num)
 		{
-			PokerPoint
-				left_num = left.Get3BasedNum(),
-				right_num = right.Get3BasedNum();
-			if (left_num != right_num)
-			{
-				return left_num < right_num;
-			}
-			else
-			{
-				int
-					left_color = static_cast<int>(left.GetColor()),
-					right_color = static_cast<int>(right.GetColor());
-				return (left_color < right_color);
-			}
+			return left_num < right_num;
 		}
-		bool operator()(PokerCardId& leftId, PokerCardId& rightId) const
+		else
 		{
-			PokerCard left(leftId), right(rightId);
-			return this->operator()(left, right);
+			int
+				left_color = static_cast<int>(left.GetColor()),
+				right_color = static_cast<int>(right.GetColor());
+			return (left_color < right_color);
 		}
-	};
-
-	using FAL_IsSmallerCard = PokerCardComparatorFALStyleLessThan;
+	}
+	bool PokerCardComparatorFALStyleLessThan::operator()(PokerCardId& leftId, PokerCardId& rightId) const
+	{
+		PokerCard left(leftId), right(rightId);
+		return this->operator()(left, right);
+	}
 
 	//PokerCardCollection& SortedCardCollection::PickOut(PokerCardCollection& picked)
 	//{
@@ -379,5 +406,7 @@ namespace PokerGame
 		std::sort(this->cards.begin(), this->cards.end(), FAL_IsSmallerCard());
 	}
 #pragma endregion
+
+
 
 }
