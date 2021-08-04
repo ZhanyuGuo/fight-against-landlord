@@ -1,5 +1,34 @@
 # 斗地主C++
 
+2021.8.4
+
++ 完成了王炸和连对的牌型
++ 修复了抢地主逻辑的一些bug
++ 修复了读取手牌的一些bug：牌被重复中以及打出的牌仍然在手中留存一份
++ 修复了三张类型构造函数的bug：传入同一点数的数量不等于3的牌时没有抛出异常，而是构造了空的牌集
++ 修复了一些类型的FormatCollection方法存在的内存泄漏
+
+---
+
+2021.8.3
+
++ 完成了顺子和炸弹的牌型
++ 新增了本地人工玩家，使用命令行交互
++ 修改了IdBasedCollection的operator[]，会抛出std::out_of_range异常
++ 实现了IdBasedCollection的PickOut(PokerCardCollection&)，（暂时使用，可能会改）
++ TypedCardCollection类增加了TryCast方法，尝试使用没有任何类型信息的牌构造一个有牌型的集合。
++ 修复了三张类型的bug
+
+需要完成的：
+
++ 本地人工玩家需要进一步测试
++ 本地人工玩家在抢地主分数的显示上有bug需要修复
++ 本地人工玩家从命令行读取出牌输入的具体流程有待优化
++ IdBasedCollection的PickOut(PokerCardCollection&)的具体实现有待考虑和优化
++ TypedCardCollection的TryCast方法（或者该功能的实现手段）有待考虑
+
+---
+
 2021.8.1
 
 + 完成了对子和三张的类型

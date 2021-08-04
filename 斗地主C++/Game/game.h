@@ -94,7 +94,21 @@ namespace PokerGame
 			std::string name;
 		};
 
-
+		class ManualLocalPlayer : public LocalPlayer
+		{
+		public :
+			virtual int PrepareResponse(int leastPoint) noexcept;
+			virtual CardEventArgs CardResponse(TypedCardEventArgs e) noexcept;
+			virtual PokerCardCollection& GetCards();
+			virtual std::string GetName();
+			virtual void Reset();
+			ManualLocalPlayer(std::string name);
+		private:
+			std::string SelfCardWithIndex();
+			IdBasedCardCollection ReadCollection();
+			SortedCardCollection cards;
+			std::string name;
+		};
 
 
 	}
