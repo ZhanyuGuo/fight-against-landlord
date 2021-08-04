@@ -112,5 +112,28 @@ namespace PokerGame
 		private:
 			PokerPoint threeBasedNum;
 		};
+
+		class WangZhaCollection : public TypedCardCollection
+		{
+		public:
+			virtual GeneralCardType GetGeneralType();
+			virtual bool IsSameType(TypedCardCollection& other);
+			virtual bool IsLargerThan(TypedCardCollection& other);
+			virtual std::shared_ptr<TypedCardCollection> FormatCollection(PokerCardCollection& collection);
+			WangZhaCollection(PokerCardCollection& collection);
+		};
+
+		class LianDuiCollection : public TypedCardCollection
+		{
+		public:
+			virtual GeneralCardType GetGeneralType();
+			virtual bool IsSameType(TypedCardCollection& other);
+			virtual bool IsLargerThan(TypedCardCollection& other);
+			virtual std::shared_ptr<TypedCardCollection> FormatCollection(PokerCardCollection& collection);
+			LianDuiCollection(PokerCardCollection& collection);
+		private:
+			PokerPoint upper3BasedPoint;
+			PokerPoint lower3BasedPoint;
+		};
 	}
 }

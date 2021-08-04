@@ -1,6 +1,7 @@
 #include "game.h"
 #include <memory>
 #include <iostream>
+#include <algorithm>
 
 namespace PokerGame
 {
@@ -34,6 +35,10 @@ namespace PokerGame
 			{
 				this->ResetGame();
 				this->HandoutInitCards();
+				for (int i = 0; i < 3; i++)
+				{
+					std::cout << this->players[i]->GetName() << "的手牌" << this->players[i]->GetCards().ToString() << std::endl;
+				}
 				this->DetermineLandlord();
 			} while (!this->LandlordSelected);
 
@@ -96,6 +101,10 @@ namespace PokerGame
 				else
 				{
 					leastPoint += 1;
+					if (leastPoint > 2)
+					{
+						leastPoint = 2;
+					}
 				}
 			}
 			if (this->LandlordSelected)
@@ -281,7 +290,7 @@ namespace PokerGame
 #pragma region 手动本地玩家
 		int ManualLocalPlayer::PrepareResponse(int leastPoint) noexcept
 		{
-			std::cout << this->name << ":请输入抢地主分数,最高3分,且不低于" << leastPoint + 1 << "分,否则视为放弃:";
+			std::cout << this->name << ":请输入抢地主分数,最高3分,且不低于" << (leastPoint + 1 <= 3 ? leastPoint + 1 : 3) << "分,否则视为放弃:";
 			int point;
 			std::cin >> point;
 			if (point > leastPoint && point <= 3)
@@ -348,7 +357,7 @@ namespace PokerGame
 						}
 						catch (NotSameTypeException)
 						{
-							typedCollection = std::shared_ptr<TypedCardCollection>(&TypedCardCollection::TryCast(rawCollection));
+							typedCollection = std::shared_ptr<TypedCardCollection>(&TypedCardCollection::TryCastZhaDanOnly(rawCollection));
 						}
 						if (typedCollection->IsLargerThan(*formerCollection))
 						{
@@ -414,7 +423,7 @@ namespace PokerGame
 			std::cin.getline(buf, 128);
 			//std::getline(std::cin, line);
 			line = std::string(buf);
-			//std::vector<int> selectedIndexes;
+			std::vector<int> selectedIndexes;
 			size_t startPos = 0, nextSpacePos;
 			nextSpacePos = line.find(' ', startPos);
 			IdBasedCardCollection rawCollection;
@@ -428,7 +437,7 @@ namespace PokerGame
 					if (!subStr.empty())
 					{
 						int index = std::stoi(subStr);
-						rawCollection << this->cards[index];
+						selectedIndexes.push_back(index);
 					}
 				}
 				catch (std::invalid_argument)
@@ -448,7 +457,7 @@ namespace PokerGame
 				if (!subStr.empty())
 				{
 					int index = std::stoi(subStr);
-					rawCollection << this->cards[index];
+					selectedIndexes.push_back(index);
 				}
 			}
 			catch (std::invalid_argument)
@@ -458,6 +467,14 @@ namespace PokerGame
 			catch (std::out_of_range e)
 			{
 				std::cout << this->name << ":非法的索引项，该项被忽略:" << e.what() << std::endl;
+			}
+
+			std::sort(selectedIndexes.begin(), selectedIndexes.end());
+			auto posToRemove = std::unique(selectedIndexes.begin(), selectedIndexes.end());
+			selectedIndexes.erase(posToRemove, selectedIndexes.end());
+			for (auto index : selectedIndexes)
+			{
+				rawCollection << this->cards[index];
 			}
 			this->cards.PickOut(rawCollection);
 			return rawCollection;
