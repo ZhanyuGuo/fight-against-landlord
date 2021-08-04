@@ -3,7 +3,7 @@
 # @Time    : 2021/8/1 14:46
 # @Author  : Zhanyu Guo
 # @Email   : 942568052@qq.com
-# @File    : base.py
+# @File    : basic.py
 # @Software: PyCharm
 import random
 from enum import Enum
@@ -115,6 +115,7 @@ class Pokers(object):
         self._formatPokers()
 
     def getPokers(self):
+        self.sortPokers()
         return self._pokers
 
     def extendPokers(self, pokers):
@@ -441,7 +442,7 @@ class PokerStack(Pokers):
         # random.seed(20210730)
         random.shuffle(self._pokers)
 
-    def getPokers(self, n=1) -> list:
+    def getPokersFromStack(self, n=1) -> list:
         """
         Get n pokers from PokerStack.
 
@@ -472,16 +473,21 @@ class SimplePlayer(Pokers):
         """
         super().__init__()
         self.id = id_
-        self._pokers = pokers.getPokers(17)
+        self._pokers = pokers.getPokersFromStack(17)
         self.sortPokers()
 
     def showPokers(self):
+        rlt = ''
         for idx, poker in enumerate(self._pokers):
-            print(f"[{idx}]:", end='')
-            print(poker, end=' ')
-        print()
+            rlt += f"[{idx}]:{poker} "
+            # print(f"[{idx}]:", end='')
+            # print(poker, end=' ')
+        rlt += '\r\n'
+        # print(rlt)
+        return rlt
 
     def outPoker(self, index: list, previous: Pokers):
+        index = list(set(index))
         index.sort(reverse=True)
         out = Pokers()
         for idx in index:
@@ -508,7 +514,7 @@ class SimpleLandlordPoker(Pokers):
         :param pokers: a poker stack.
         """
         super().__init__()
-        self._pokers = pokers.getPokers(3)
+        self._pokers = pokers.getPokersFromStack(3)
 
 
 def main():
@@ -519,17 +525,15 @@ def main():
     player_c = SimplePlayer(2, poker_stack)
     landlord_three = SimpleLandlordPoker(poker_stack)
 
-    # print(player_a)
-    # print(player_b)
-    # print(player_c)
-    # print(landlord_three)
-    player_a.showPokers()
-    index = list(map(int, input('出牌：（空格间隔）\r\n').split()))
-    player_a.outPoker(index, Pokers())
-    player_a.showPokers()
+    print(player_a)
+    print(player_b)
+    print(player_c)
+    print(landlord_three)
 
-    # print(poker_stack)
-    pass
+    print(player_a.showPokers())
+    index = list(map(int, input('出牌：\r\n').split()))
+    player_a.outPoker(index, Pokers())
+    print(player_a.showPokers())
 
 
 if __name__ == '__main__':

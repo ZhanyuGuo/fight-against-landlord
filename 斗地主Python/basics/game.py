@@ -5,7 +5,7 @@
 # @Email   : 942568052@qq.com
 # @File    : game.py
 # @Software: PyCharm
-from base import *
+from basic import *
 
 
 class Game(object):
@@ -83,7 +83,7 @@ class Game(object):
             print('上家：', end='')
             print(previous)
             print(f"玩家{current_id}: ", end='')
-            current_player.showPokers()
+            print(current_player.showPokers())
             cmd = list(map(int, input('选择牌号（空格间隔），或输入-1跳过:\r\n').split()))
             if len(cmd) == 0:
                 continue
