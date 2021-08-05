@@ -1,4 +1,4 @@
-#include "game.h"
+ï»¿#include "game.h"
 #include <memory>
 #include <iostream>
 #include <algorithm>
@@ -30,24 +30,24 @@ namespace PokerGame
 
 		void GameProcess::Run()
 		{
-			// TODO: ¿¼ÂÇ·ÅÆú¸÷ÖÖÑ­»·£¬¸ÄÓÃÊÂ¼þÇý¶¯µÄÐÎÊ½
+			// TODO: è€ƒè™‘æ”¾å¼ƒå„ç§å¾ªçŽ¯ï¼Œæ”¹ç”¨äº‹ä»¶é©±åŠ¨çš„å½¢å¼
 			do
 			{
 				this->ResetGame();
 				this->HandoutInitCards();
 				for (int i = 0; i < 3; i++)
 				{
-					std::cout << this->players[i]->GetName() << "µÄÊÖÅÆ" << this->players[i]->GetCards().ToString() << std::endl;
+					std::cout << this->players[i]->GetName() << "çš„æ‰‹ç‰Œ" << this->players[i]->GetCards().ToString() << std::endl;
 				}
 				this->DetermineLandlord();
 			} while (!this->LandlordSelected);
 
-			std::cout << "µØÖ÷ÊÇ" << this->LandlordIndex + 1 << "ºÅ" << std::endl;
-			std::cout << "µØÖ÷ÅÆ" << this->LordCards->ToString() << std::endl;
+			std::cout << "åœ°ä¸»æ˜¯" << this->LandlordIndex + 1 << "å·" << std::endl;
+			std::cout << "åœ°ä¸»ç‰Œ" << this->LordCards->ToString() << std::endl;
 
 			for (int i = 0; i < 3; i++)
 			{
-				std::cout << this->players[i]->GetName() << "µÄÊÖÅÆ" << this->players[i]->GetCards().ToString() << std::endl;
+				std::cout << this->players[i]->GetName() << "çš„æ‰‹ç‰Œ" << this->players[i]->GetCards().ToString() << std::endl;
 			}
 
 			this->MainCardLoop();
@@ -132,7 +132,7 @@ namespace PokerGame
 					auto activeResponse = this->players[idx]->CardResponse(activeMotionInfo);
 					if (this->players[idx]->GetCards().Count() == 0)
 					{
-						std::cout << this->players[idx]->GetName() << "´òÍêÁË" << std::endl;
+						std::cout << this->players[idx]->GetName() << "æ‰“å®Œäº†" << std::endl;
 						break;
 					}
 					currentCards = std::dynamic_pointer_cast<TypedCardCollection>(activeResponse.GetContent());
@@ -145,7 +145,7 @@ namespace PokerGame
 					auto followResponse = this->players[idx]->CardResponse(followMotionInfo);
 					if (this->players[idx]->GetCards().Count() == 0)
 					{
-						std::cout << this->players[idx]->GetName() << "´òÍêÁË" << std::endl;
+						std::cout << this->players[idx]->GetName() << "æ‰“å®Œäº†" << std::endl;
 						break;
 					}
 					switch (followResponse.GetType())
@@ -233,7 +233,7 @@ namespace PokerGame
 			{
 				PokerCard card = this->cards.PickOut(c - 1);
 				std::shared_ptr<PokerCardCollection> cl(new DanZhangCollection(card));
-				std::cout << this->name << std::string(":´ò³öÁË") << card.ToString(true) << std::endl;
+				std::cout << this->name << std::string(":æ‰“å‡ºäº†") << card.ToString(true) << std::endl;
 				return CardEventArgs(CardEventArgs::MotionType::Follow, cl);
 				break;
 			}
@@ -241,7 +241,7 @@ namespace PokerGame
 			{
 				if (e.GetTypedContent()->GetGeneralType() != GeneralCardType::Dan)
 				{
-					std::cout << this->name << std::string(":Ìø¹ý") << std::endl;
+					std::cout << this->name << std::string(":è·³è¿‡") << std::endl;
 					return CardEventArgs(CardEventArgs::MotionType::Pass);
 				}
 				PokerCard largestCard = this->cards[c - 1];
@@ -249,12 +249,12 @@ namespace PokerGame
 				{
 					this->cards.PickOut(c - 1);
 					std::shared_ptr<PokerCardCollection> cle(new DanZhangCollection(largestCard));
-					std::cout << this->name << std::string(":¸úËæÁË") << largestCard.ToString(true) << std::endl;
+					std::cout << this->name << std::string(":è·Ÿéšäº†") << largestCard.ToString(true) << std::endl;
 					return CardEventArgs(CardEventArgs::MotionType::Follow, cle);
 				}
 				else
 				{
-					std::cout << this->name << std::string(":Ìø¹ý") << std::endl;
+					std::cout << this->name << std::string(":è·³è¿‡") << std::endl;
 					return CardEventArgs(CardEventArgs::MotionType::Pass);
 				}
 				break;
@@ -287,10 +287,10 @@ namespace PokerGame
 		}
 #pragma endregion
 
-#pragma region ÊÖ¶¯±¾µØÍæ¼Ò
+#pragma region æ‰‹åŠ¨æœ¬åœ°çŽ©å®¶
 		int ManualLocalPlayer::PrepareResponse(int leastPoint) noexcept
 		{
-			std::cout << this->name << ":ÇëÊäÈëÇÀµØÖ÷·ÖÊý,×î¸ß3·Ö,ÇÒ²»µÍÓÚ" << (leastPoint + 1 <= 3 ? leastPoint + 1 : 3) << "·Ö,·ñÔòÊÓÎª·ÅÆú:";
+			std::cout << this->name << ":è¯·è¾“å…¥æŠ¢åœ°ä¸»åˆ†æ•°,æœ€é«˜3åˆ†,ä¸”ä¸ä½ŽäºŽ" << (leastPoint + 1 <= 3 ? leastPoint + 1 : 3) << "åˆ†,å¦åˆ™è§†ä¸ºæ”¾å¼ƒ:";
 			int point;
 			std::cin >> point;
 			if (point > leastPoint && point <= 3)
@@ -309,15 +309,15 @@ namespace PokerGame
 			{
 			case CardEventArgs::MotionType::Active:
 			{
-				std::cout << this->name << ":ÂÖµ½×Ô¼º³öÅÆ£¨Ö÷¶¯£©" << std::endl;
-				std::cout << this->name << ":ÊÖÅÆ:" << this->SelfCardWithIndex() << std::endl;
+				std::cout << this->name << ":è½®åˆ°è‡ªå·±å‡ºç‰Œï¼ˆä¸»åŠ¨ï¼‰" << std::endl;
+				std::cout << this->name << ":æ‰‹ç‰Œ:" << this->SelfCardWithIndex() << std::endl;
 				bool gotValidCard = false;
 				IdBasedCardCollection rawCollection;
 				std::shared_ptr<TypedCardCollection> typedCollection;
 				do
 				{
 					this->cards << rawCollection;
-					std::cout << this->name << ":ÊäÈëÅÆµÄË÷Òý£¨¿Õ¸ñ·Ö¸ô£©£¬ÊäÈë»Ø³µÈ·ÈÏ£º";
+					std::cout << this->name << ":è¾“å…¥ç‰Œçš„ç´¢å¼•ï¼ˆç©ºæ ¼åˆ†éš”ï¼‰ï¼Œè¾“å…¥å›žè½¦ç¡®è®¤ï¼š";
 					rawCollection = this->ReadCollection();
 					try
 					{
@@ -326,23 +326,23 @@ namespace PokerGame
 					}
 					catch (InvalidTypeException)
 					{
-						std::cout << this->name << ":Invalid Card Type,ÇëÖØÐÂÊäÈë" << std::endl;
+						std::cout << this->name << ":Invalid Card Type,è¯·é‡æ–°è¾“å…¥" << std::endl;
 					}
 				} while (!gotValidCard);
 				return TypedCardEventArgs(CardEventArgs::MotionType::Active, typedCollection);
 			}
 			case CardEventArgs::MotionType::Follow:
 			{
-				std::cout << this->name << ":ÂÖµ½×Ô¼º³öÅÆ£¨¸úËæ£©" << std::endl;
-				std::cout << this->name << ":ÉÏ¼Ò³öÅÆ:" << e.GetContent()->ToString() << std::endl;
-				std::cout << this->name << ":ÊÖÅÆ:" << this->SelfCardWithIndex() << std::endl;
+				std::cout << this->name << ":è½®åˆ°è‡ªå·±å‡ºç‰Œï¼ˆè·Ÿéšï¼‰" << std::endl;
+				std::cout << this->name << ":ä¸Šå®¶å‡ºç‰Œ:" << e.GetContent()->ToString() << std::endl;
+				std::cout << this->name << ":æ‰‹ç‰Œ:" << this->SelfCardWithIndex() << std::endl;
 				bool gotValidCard = false;
 				IdBasedCardCollection rawCollection;
 				std::shared_ptr<TypedCardCollection> typedCollection;
 				do
 				{
 					this->cards << rawCollection;
-					std::cout << this->name << ":ÊäÈëÅÆµÄË÷Òý£¨¿Õ¸ñ·Ö¸ô£©£¬ÊäÈë»Ø³µÈ·ÈÏ£¬Ö±½Ó»Ø³µÒÔÌø¹ý£º";
+					std::cout << this->name << ":è¾“å…¥ç‰Œçš„ç´¢å¼•ï¼ˆç©ºæ ¼åˆ†éš”ï¼‰ï¼Œè¾“å…¥å›žè½¦ç¡®è®¤ï¼Œç›´æŽ¥å›žè½¦ä»¥è·³è¿‡ï¼š";
 					rawCollection = this->ReadCollection();
 					if (rawCollection.Count() == 0)
 					{
@@ -365,12 +365,12 @@ namespace PokerGame
 						}
 						else
 						{
-							std::cout << this->name << ":¸ÃÅÆ²»ÄÜÑ¹¹ýÉÏ¼Ò,ÇëÖØÐÂÊäÈë" << std::endl;
+							std::cout << this->name << ":è¯¥ç‰Œä¸èƒ½åŽ‹è¿‡ä¸Šå®¶,è¯·é‡æ–°è¾“å…¥" << std::endl;
 						}
 					}
 					catch (InvalidTypeException)
 					{
-						std::cout << this->name << ":Invalid Card Type,ÇëÖØÐÂÊäÈë" << std::endl;
+						std::cout << this->name << ":Invalid Card Type,è¯·é‡æ–°è¾“å…¥" << std::endl;
 					}
 				} while (!gotValidCard);
 				return TypedCardEventArgs(CardEventArgs::MotionType::Follow, typedCollection);
@@ -442,11 +442,11 @@ namespace PokerGame
 				}
 				catch (std::invalid_argument)
 				{
-					std::cout << this->name << ":ÎÞ·¨×ª»¯ÎªË÷ÒýµÄÊäÈë£¬¸ÃÏî±»ºöÂÔ:" << subStr << std::endl;
+					std::cout << this->name << ":æ— æ³•è½¬åŒ–ä¸ºç´¢å¼•çš„è¾“å…¥ï¼Œè¯¥é¡¹è¢«å¿½ç•¥:" << subStr << std::endl;
 				}
 				catch (std::out_of_range e)
 				{
-					std::cout << this->name << ":·Ç·¨µÄË÷ÒýÏî£¬¸ÃÏî±»ºöÂÔ:" << e.what() << std::endl;
+					std::cout << this->name << ":éžæ³•çš„ç´¢å¼•é¡¹ï¼Œè¯¥é¡¹è¢«å¿½ç•¥:" << e.what() << std::endl;
 				}
 				startPos = nextSpacePos + 1;
 				nextSpacePos = line.find(' ', startPos);
@@ -462,11 +462,11 @@ namespace PokerGame
 			}
 			catch (std::invalid_argument)
 			{
-				std::cout << this->name << ":ÎÞ·¨×ª»¯ÎªË÷ÒýµÄÊäÈë£¬¸ÃÏî±»ºöÂÔ:" << subStr << std::endl;
+				std::cout << this->name << ":æ— æ³•è½¬åŒ–ä¸ºç´¢å¼•çš„è¾“å…¥ï¼Œè¯¥é¡¹è¢«å¿½ç•¥:" << subStr << std::endl;
 			}
 			catch (std::out_of_range e)
 			{
-				std::cout << this->name << ":·Ç·¨µÄË÷ÒýÏî£¬¸ÃÏî±»ºöÂÔ:" << e.what() << std::endl;
+				std::cout << this->name << ":éžæ³•çš„ç´¢å¼•é¡¹ï¼Œè¯¥é¡¹è¢«å¿½ç•¥:" << e.what() << std::endl;
 			}
 
 			std::sort(selectedIndexes.begin(), selectedIndexes.end());

@@ -61,7 +61,7 @@ namespace PokerGame
 		}
 		else
 		{
-			return point - 11;
+			return point - 2;
 		}
 	}
 
@@ -128,7 +128,7 @@ namespace PokerGame
 			}
 			switch (color)
 			{
-		
+
 			case PokerGame::PokerColor::Empty:
 				break;
 			case PokerGame::PokerColor::Spade:
@@ -148,7 +148,7 @@ namespace PokerGame
 			default:
 				break;
 			}
-			return colorChar + pointChar;
+			return colorChar + std::string(" ") + pointChar;
 		}
 	}
 
@@ -236,12 +236,12 @@ namespace PokerGame
 		{
 			PokerCard card(this->cards.at(index));
 			return card;
-		} 
-		catch(std::out_of_range)
+		}
+		catch (std::out_of_range)
 		{
 			std::string err = std::string("index = ") + std::to_string(index);
 			throw std::out_of_range(err);
-		}	
+		}
 	}
 
 	bool IdBasedCardCollection::ContainsCard(PokerCard card)
