@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include "poker.h"
 #include <memory>
 
@@ -37,11 +37,11 @@ namespace PokerGame
 			virtual bool IsSameType(TypedCardCollection& other) = 0;
 			virtual bool IsLargerThan(TypedCardCollection& other) = 0;
 			/// <summary>
-			/// ³¢ÊÔÍ¨¹ıÒ»¸öPokerCardCollection¹¹ÔìÒ»¸öÓë´ËTypedCardCollectionÏàÍ¬ÀàĞÍµÄ¶ÔÏó,
-			/// Èç¹ûPokerCardCollection²»ÊÇÆ¥ÅäµÄÅÆĞÍ,»áÅ×³öNotSameTypeException
+			/// å°è¯•é€šè¿‡ä¸€ä¸ªPokerCardCollectionæ„é€ ä¸€ä¸ªä¸æ­¤TypedCardCollectionç›¸åŒç±»å‹çš„å¯¹è±¡,
+			/// å¦‚æœPokerCardCollectionä¸æ˜¯åŒ¹é…çš„ç‰Œå‹,ä¼šæŠ›å‡ºNotSameTypeException
 			/// </summary>
 			/// <param name="collection"></param>
-			/// <returns>Èç¹ûÊÇÏàÍ¬µÄÅÆĞÍ£¬»á·µ»ØÒ»¸öÖ¸Ïò³éÏó»ùÀàµÄÖÇÄÜÖ¸Õë£¬¶ÔÏóµÄÊµ¼ÊÀàĞÍÓë×ÔÉíÏàÍ¬</returns>
+			/// <returns>å¦‚æœæ˜¯ç›¸åŒçš„ç‰Œå‹ï¼Œä¼šè¿”å›ä¸€ä¸ªæŒ‡å‘æŠ½è±¡åŸºç±»çš„æ™ºèƒ½æŒ‡é’ˆï¼Œå¯¹è±¡çš„å®é™…ç±»å‹ä¸è‡ªèº«ç›¸åŒ</returns>
 			virtual std::shared_ptr<TypedCardCollection> FormatCollection(PokerCardCollection& collection) = 0;
 			virtual ~TypedCardCollection() {}
 			static TypedCardCollection& TryCast(PokerCardCollection& collection);
@@ -134,6 +134,21 @@ namespace PokerGame
 		private:
 			PokerPoint upper3BasedPoint;
 			PokerPoint lower3BasedPoint;
+		};
+
+		class FeiJiCollection : public TypedCardCollection
+		{
+		public:
+			virtual GeneralCardType GetGeneralType();
+			virtual bool IsSameType(TypedCardCollection& other);
+			virtual bool IsLargerThan(TypedCardCollection& other);
+			virtual std::shared_ptr<TypedCardCollection> FormatCollection(PokerCardCollection& collection);
+			FeiJiCollection(PokerCardCollection& collection);
+		private:
+			PokerPoint upper3BasedMainPoint;
+			PokerPoint lower3BasedMainPoint;
+			int attachedUnitSize;
+			std::vector<PokerPoint> attachedPoints;
 		};
 	}
 }

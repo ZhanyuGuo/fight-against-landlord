@@ -1,4 +1,4 @@
-#include "cardtype.h"
+Ôªø#include "cardtype.h"
 #include <map>
 #include <algorithm>
 
@@ -9,7 +9,7 @@ namespace PokerGame
 	{
 
 
-#pragma region µ•’≈
+#pragma region ÂçïÂº†
 		DanZhangCollection::DanZhangCollection(PokerCard card)
 		{
 			this->cards.push_back(card.GetId());
@@ -72,7 +72,7 @@ namespace PokerGame
 		}
 #pragma endregion
 
-#pragma region ∂‘◊”
+#pragma region ÂØπÂ≠ê
 
 		GeneralCardType DuiZiColleciton::GetGeneralType()
 		{
@@ -144,7 +144,7 @@ namespace PokerGame
 
 #pragma endregion
 
-#pragma region »˝’≈
+#pragma region ‰∏âÂº†
 
 		GeneralCardType SanZhangCollection::GetGeneralType()
 		{
@@ -209,6 +209,7 @@ namespace PokerGame
 				{
 					this->mainPoint = item->first;
 					this->attachedCount = 0;
+					*this << collection;
 				}
 				else
 				{
@@ -265,7 +266,7 @@ namespace PokerGame
 
 #pragma endregion
 
-#pragma region À≥◊”
+#pragma region È°∫Â≠ê
 		GeneralCardType ShunZiCollection::GetGeneralType()
 		{
 			return GeneralCardType::Shun;
@@ -358,7 +359,7 @@ namespace PokerGame
 		}
 #pragma endregion
 
-#pragma region ’®µØ
+#pragma region ÁÇ∏Âºπ
 		GeneralCardType ZhaDanCollection::GetGeneralType()
 		{
 			return GeneralCardType::Zha;
@@ -428,7 +429,7 @@ namespace PokerGame
 		}
 #pragma endregion
 
-#pragma region Õı’®
+#pragma region ÁéãÁÇ∏
 		GeneralCardType WangZhaCollection::GetGeneralType()
 		{
 			return GeneralCardType::WangZha;
@@ -499,7 +500,7 @@ namespace PokerGame
 		}
 #pragma endregion
 
-#pragma region ¡¨∂‘
+#pragma region ËøûÂØπ
 		GeneralCardType LianDuiCollection::GetGeneralType()
 		{
 			return GeneralCardType::LianDui;
@@ -583,11 +584,144 @@ namespace PokerGame
 		}
 #pragma endregion
 
+#pragma region È£ûÊú∫
+		GeneralCardType FeiJiCollection::GetGeneralType()
+		{
+			return GeneralCardType::FeiJi;
+		}
 
+		bool FeiJiCollection::IsSameType(TypedCardCollection& other)
+		{
+			if (other.GetGeneralType() != GeneralCardType::FeiJi)
+			{
+				return false;
+			}
+			else
+			{
+				FeiJiCollection* otherFeiJi = dynamic_cast<FeiJiCollection*>(&other);
+				int thisSpan = this->upper3BasedMainPoint - this->lower3BasedMainPoint;
+				int otherSpan = otherFeiJi->upper3BasedMainPoint - otherFeiJi->lower3BasedMainPoint;
+				if (thisSpan != otherSpan)
+				{
+					return false;
+				}
+				else
+				{
+					return this->attachedUnitSize == otherFeiJi->attachedUnitSize;
+				}
+			}
+			return false;
+		}
 
+		bool FeiJiCollection::IsLargerThan(TypedCardCollection& other)
+		{
+			if (!this->IsSameType(other))
+			{
+				return false;
+			}
+			else
+			{
+				FeiJiCollection* otherFeiJi = dynamic_cast<FeiJiCollection*>(&other);
+				return this->upper3BasedMainPoint > otherFeiJi->upper3BasedMainPoint;
+			}
+		}
 
+		std::shared_ptr<TypedCardCollection> FeiJiCollection::FormatCollection(PokerCardCollection& collection)
+		{
+			try
+			{
+				FeiJiCollection* feiJi = new FeiJiCollection(collection);
+				if (!this->IsSameType(*feiJi))
+				{
+					delete feiJi;
+					throw NotSameTypeException();
+				}
+				return std::shared_ptr<FeiJiCollection>(feiJi);
+			}
+			catch (NotSameTypeException)
+			{
+				throw;
+			}
+			
+		}
 
-#pragma region ‘Ï–Õ≥¢ ‘£®‘›∂®£©
+		FeiJiCollection::FeiJiCollection(PokerCardCollection& collection)
+		{
+			CardRepetitionDict repetition = collection.GetCardRepetition(collection);
+			std::vector<PokerPoint> main3BasedNums;
+			bool attachedUnitSizeDetermined = false;
+
+			for (auto pair : repetition)
+			{
+				if (pair.second == 3)
+				{
+					PokerPoint main3BasedNum = PokerCard::NormalPointTo3BasedNum(pair.first);
+					if (main3BasedNum >= 1 && main3BasedNum <= 12)
+					{
+						main3BasedNums.push_back(main3BasedNum);
+					}
+					else
+					{
+						throw NotSameTypeException();
+					}
+				}
+				else if (pair.second == 1 || pair.second == 2)
+				{
+					if (!attachedUnitSizeDetermined)
+					{
+						this->attachedUnitSize = pair.second;
+						attachedUnitSizeDetermined = true;
+						this->attachedPoints.push_back(pair.first);
+					}
+					else
+					{
+						if (pair.second != this->attachedUnitSize)
+						{
+							throw NotSameTypeException();
+						}
+						else
+						{
+							this->attachedPoints.push_back(pair.first);
+						}
+					}
+				}
+				else
+				{
+					throw NotSameTypeException();
+				}	
+			}
+			if (!attachedUnitSizeDetermined)
+			{
+				this->attachedUnitSize = 0;
+			}
+			else
+			{
+				if (this->attachedPoints.size() != main3BasedNums.size())
+				{
+					throw NotSameTypeException();
+				}
+			}
+			std::sort(main3BasedNums.begin(), main3BasedNums.end());
+			int count = main3BasedNums.size();
+			if (count < 2)
+			{
+				throw NotSameTypeException();
+			}
+			int dif = main3BasedNums[count - 1] - main3BasedNums[0];
+			if ((count - dif) != 1)
+			{
+				throw NotSameTypeException();
+			}
+			else
+			{
+				*this << collection;
+				this->lower3BasedMainPoint = main3BasedNums[0];
+				this->upper3BasedMainPoint = main3BasedNums[count - 1];
+			}
+		}
+#pragma endregion
+
+#pragma region ÈÄ†ÂûãÂ∞ùËØïÔºàÊöÇÂÆöÔºâ
 		TypedCardCollection& TypedCardCollection::TryCast(PokerCardCollection& collection)
 		{
 			TypedCardCollection* typedCol = nullptr;
@@ -600,6 +734,8 @@ namespace PokerGame
 			try { typedCol = new ShunZiCollection(collection); return *typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
 			try { typedCol = new LianDuiCollection(collection); return *typedCol; }
+			catch (NotSameTypeException) { typedCol = nullptr; }
+			try { typedCol = new FeiJiCollection(collection); return *typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
 			try { typedCol = new ZhaDanCollection(collection); return *typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
@@ -625,6 +761,8 @@ namespace PokerGame
 
 
 		
+
+
 
 }
 }

@@ -25,7 +25,6 @@ int main()
 {
 	//system("chcp 65001");
 
-
 	//using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
 	using Tester = PokerGame::FAL::ManualLocalPlayer;
 	std::shared_ptr<PokerGame::FAL::Player>
