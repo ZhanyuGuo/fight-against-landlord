@@ -10,24 +10,30 @@ from basic import *
 
 class Game(object):
     def __init__(self):
-        self.poker_stack = PokerStack()
-        self.player_num = 0
-        self.player_list = []
-        self.landlord_pokers = SimpleLandlordPoker(self.poker_stack)
-        self.landlord_id = -1
+        self._poker_stack = PokerStack()
+        self._player_num = 0
+        self._player_list = []
+        self._landlord_pokers = SimpleLandlordPokers(self._poker_stack)
+        self._landlord_id = -1
 
-    def addPlayer(self):
-        self.player_num += 1
-        new_player = SimplePlayer(self.player_num - 1, self.poker_stack)
-        self.player_list.append(new_player)
+    def getPlayerList(self) -> list:
+        return self._player_list
+
+    def getLandlord_id(self) -> int:
+        return self._landlord_id
+
+    def addPlayer(self) -> SimplePlayer:
+        self._player_num += 1
+        new_player = SimplePlayer(self._player_num - 1, self._poker_stack)
+        self._player_list.append(new_player)
         return new_player
 
     def setLandlord(self, player: SimplePlayer):
-        player.extendPokers(self.landlord_pokers.getPokers())
+        player.extendPokers(self._landlord_pokers.getPokers())
         player.sortPokers()
-        self.landlord_id = player.id
+        self._landlord_id = player.getId()
 
-    def decideLandLord(self, beginner_id):
+    def decideLandLord(self, beginner_id: int) -> bool:
         score = [0] * 3
         print('================ 抢地主环节 ================')
         for _ in range(3):
@@ -46,7 +52,6 @@ class Game(object):
             else:
                 break
             beginner_id = (beginner_id + 1) % 3
-            pass
 
         max_score = max(score)
         if max_score == 0:
@@ -54,17 +59,17 @@ class Game(object):
             return False
         else:
             max_score_id = score.index(max_score)
-            self.setLandlord(self.player_list[max_score_id])
+            self.setLandlord(self._player_list[max_score_id])
             print(f"玩家{max_score_id}以{max_score}分，成为地主！")
             print('================ 抢地主结束 ================')
             return True
 
     def run_a_game(self):
-        player_0 = self.player_list[0]
-        player_1 = self.player_list[1]
-        player_2 = self.player_list[2]
+        player_0 = self._player_list[0]
+        player_1 = self._player_list[1]
+        player_2 = self._player_list[2]
 
-        current_id = self.landlord_id
+        current_id = self._landlord_id
         previous = Pokers()
         skip_cnt = 0
         while True:
@@ -79,7 +84,7 @@ class Game(object):
                 skip_cnt = 0
                 previous = Pokers()
 
-            current_player = self.player_list[current_id]
+            current_player = self._player_list[current_id]
             print('上家：', end='')
             print(previous)
             print(f"玩家{current_id}: ", end='')
@@ -88,6 +93,7 @@ class Game(object):
             if len(cmd) == 0:
                 continue
             elif cmd[0] == -1:
+                previous.sortGetType()
                 if previous.getType() == PokerType.empty:
                     print('不可跳过')
                     continue
@@ -108,17 +114,17 @@ class Game(object):
                     continue
 
         if length_0 == 0:
-            if self.landlord_id == 0:
+            if self._landlord_id == 0:
                 print('地主获胜')
             else:
                 print('农民获胜')
         elif length_1 == 0:
-            if self.landlord_id == 1:
+            if self._landlord_id == 1:
                 print('地主获胜')
             else:
                 print('农民获胜')
         else:
-            if self.landlord_id == 2:
+            if self._landlord_id == 2:
                 print('地主获胜')
             else:
                 print('农民获胜')

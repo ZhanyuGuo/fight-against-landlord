@@ -45,8 +45,8 @@ def player():
         server.setIPList(cur_list)
         server.addPlayer()
         if len(cur_list) == 3:
-            server.setLandlord(server.player_list[0])
-            server.current_id = server.landlord_id
+            server.setLandlord(server.getPlayerList()[0])
+            server.current_id = server.getLandlord_id()
             pass
 
         return jsonify("Post Player")
@@ -56,7 +56,7 @@ def player():
 
 @app.route('/pokers/<int:player_id>')
 def getPokers(player_id):
-    rlt = server.player_list[player_id].showPokers()
+    rlt = server.getPlayerList()[player_id].showPokers()
     return jsonify(rlt)
 
 
