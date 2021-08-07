@@ -148,7 +148,12 @@ namespace PokerGame
 			PokerPoint upper3BasedMainPoint;
 			PokerPoint lower3BasedMainPoint;
 			int attachedUnitSize;
-			std::vector<PokerPoint> attachedPoints;
+			//std::vector<PokerPoint> attachedPoints;
+			std::unique_ptr<PokerCardCollection> mainCache;
+			std::unique_ptr<PokerCardCollection> attachedCache;
+			IdBasedCardCollection ExtractMainCollection(std::vector<PokerPoint> main3BasedNums, PokerCardCollection& collection);
+			std::vector<std::vector<PokerPoint>> GetContinousSubSeq(std::vector<PokerPoint> seq);
+			bool IsPaired(PokerCardCollection& collection);
 		};
 	}
 }

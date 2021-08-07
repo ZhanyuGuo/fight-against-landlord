@@ -645,8 +645,10 @@ namespace PokerGame
 			
 		}
 
+
 		FeiJiCollection::FeiJiCollection(PokerCardCollection& collection)
 		{
+#ifdef Feiji_Constructor_Old
 			CardRepetitionDict repetition = collection.GetCardRepetition(collection);
 			std::vector<PokerPoint> main3BasedNums;
 			bool attachedUnitSizeDetermined = false;
@@ -718,6 +720,185 @@ namespace PokerGame
 				this->lower3BasedMainPoint = main3BasedNums[0];
 				this->upper3BasedMainPoint = main3BasedNums[count - 1];
 			}
+#else
+			CardRepetitionDict repetition = PokerCardCollection::GetCardRepetition(collection);
+			std::vector<PokerPoint> threeBasedNums;
+
+			for (auto pair : repetition)
+			{
+				if (pair.second >= 3)
+				{
+					PokerPoint threeBaseNum = PokerCard::NormalPointTo3BasedNum(pair.first);
+					if (threeBaseNum >= 1 && threeBaseNum <= 12)
+					{
+						threeBasedNums.push_back(threeBaseNum);
+					}
+				}
+			}
+			if (threeBasedNums.size() < 2)
+			{
+				throw NotSameTypeException();
+			}
+			auto subSeqs = this->GetContinousSubSeq(threeBasedNums);
+			if (subSeqs.size() == 0)
+			{
+				throw NotSameTypeException();
+			}
+			else
+			{
+				for (auto continous3BasedNums : subSeqs)
+				{
+					int mainPairCount = continous3BasedNums.size();
+					int mainCount = 3 * mainPairCount;
+					int attachedCount = collection.Count() - mainCount;
+					if (attachedCount % mainPairCount != 0)
+					{
+						goto NotSuitableAttached;
+					}
+					else
+					{
+						switch (attachedCount / mainPairCount)
+						{
+						case 0:
+						{
+							this->attachedUnitSize = 0;
+							this->lower3BasedMainPoint = continous3BasedNums[0];
+							this->upper3BasedMainPoint = continous3BasedNums[mainPairCount - 1];
+							*this << collection;
+							IdBasedCardCollection* mainCollection = new IdBasedCardCollection();
+							IdBasedCardCollection temp = this->ExtractMainCollection(continous3BasedNums, collection);
+							*mainCollection << temp;
+							this->mainCache = std::unique_ptr<PokerCardCollection>(mainCollection);
+							this->attachedCache = std::unique_ptr<PokerCardCollection>(nullptr);
+							return;
+							break;
+						}
+						case 1:
+						{
+							this->attachedUnitSize = 1;
+							this->lower3BasedMainPoint = continous3BasedNums[0];
+							this->upper3BasedMainPoint = continous3BasedNums[mainPairCount - 1];
+							*this << collection;
+							IdBasedCardCollection* mainCollection = new IdBasedCardCollection();
+							IdBasedCardCollection temp = this->ExtractMainCollection(continous3BasedNums, collection);
+							*mainCollection << temp;
+							this->mainCache = std::unique_ptr<PokerCardCollection>(mainCollection);
+							IdBasedCardCollection collectionCopy;
+							collectionCopy << collection;
+							PokerCardCollection* attatchedCollection = &collectionCopy.PickOut(*this->mainCache);
+							this->attachedCache = std::unique_ptr<PokerCardCollection>(attatchedCollection);
+							//
+							return;
+							break;
+						}
+						case 2:
+						{
+							this->attachedUnitSize = 2;
+							this->lower3BasedMainPoint = continous3BasedNums[0];
+							this->upper3BasedMainPoint = continous3BasedNums[mainPairCount - 1];
+							*this << collection;
+							IdBasedCardCollection* mainCollection = new IdBasedCardCollection();
+							IdBasedCardCollection temp = this->ExtractMainCollection(continous3BasedNums, collection);
+							*mainCollection << temp;
+							this->mainCache = std::unique_ptr<PokerCardCollection>(mainCollection);
+							IdBasedCardCollection* collectionCopy = new IdBasedCardCollection();
+							*collectionCopy << collection;
+							collectionCopy->PickOut(*this->mainCache);
+							PokerCardCollection* attatchedCollection = static_cast<PokerCardCollection*>(collectionCopy);
+							if (!this->IsPaired(*attatchedCollection))
+							{
+								delete collectionCopy;
+								goto NotSuitableAttached;
+							}
+							this->attachedCache = std::unique_ptr<PokerCardCollection>(attatchedCollection);
+							return;
+							break;
+						}
+						default:
+						{
+							goto NotSuitableAttached;
+						}
+						}
+					}
+				NotSuitableAttached:
+					{
+						continue;
+					}
+				}
+				throw NotSameTypeException();
+			}
+#endif // Feiji_Constructor_Old
+		}
+
+		IdBasedCardCollection FeiJiCollection::ExtractMainCollection(std::vector<PokerPoint> main3BasedNums, PokerCardCollection& collection)
+		{
+			IdBasedCardCollection mainCollection;
+			for (auto main3BasedNum : main3BasedNums)
+			{
+				int count = 0;
+				for (int i = 0; i < collection.Count(); i++)
+				{
+					PokerPoint threeBasedNum = collection[i].Get3BasedNum();
+					if (threeBasedNum == main3BasedNum)
+					{
+						count++;
+						mainCollection << collection[i];
+						if (count == 3)
+						{
+							break;
+						}
+					}
+				}
+				// if(count != 3) //exception
+			}
+			return mainCollection;
+		}
+
+		/// <summary>
+		/// 获取连续子列,仅FeiJiCollection内部适用,因为具有如下特性:要求seq的值是不重复的;
+		/// 子列的长度范围为2至seq.size()(均包含);每种长度的子列只返回值较大的一个;
+		/// 较长的子列排在前面
+		/// </summary>
+		/// <param name="seq"></param>
+		/// <returns></returns>
+		std::vector<std::vector<PokerPoint>> FeiJiCollection::GetContinousSubSeq(std::vector<PokerPoint> seq)
+		{
+			std::sort(seq.begin(), seq.end());
+			std::vector<std::vector<PokerPoint>> result;
+			int iFront, iBack;
+			int totalRound = seq.size() - 1;
+			for (int round = totalRound; round >= 1 ; round--)
+			{
+				iBack = seq.size() - 1;
+				iFront = iBack - round;
+				while (iFront >= 0)
+				{
+					int indexDif = round;
+					int valueDif = seq[iBack] - seq[iFront];
+					if (indexDif == valueDif)
+					{
+						std::vector<PokerPoint> continousSubSeq(seq.begin() + iFront, seq.begin() + iBack + 1);
+						result.push_back(continousSubSeq);
+						break;
+					}
+					iBack--;
+					iFront--;
+				}
+			}
+			return result;
+		}
+
+		bool FeiJiCollection::IsPaired(PokerCardCollection& collection)
+		{
+			CardRepetitionDict repetition = PokerCardCollection::GetCardRepetition(collection);
+			for (auto pair : repetition)
+			{
+				if (pair.second % 2 != 0)
+				{
+					return false;
+				}
+			}
+			return true;
 		}
 #pragma endregion
 

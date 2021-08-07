@@ -27,6 +27,9 @@
     <ClCompile Include="cardtype.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="onlinegame.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="poker.h">
@@ -36,6 +39,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="cardtype.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="onlinegame.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
