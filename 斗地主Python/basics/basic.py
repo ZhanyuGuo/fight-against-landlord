@@ -75,10 +75,10 @@ class Pokers(object):
     def getPokers(self) -> list:
         return self._pokers
 
-    def setPokers(self, poker_list: list):
+    def setPokers(self, poker_list: list) -> None:
         self._pokers = poker_list
 
-    def extendPokers(self, poker_list: list):
+    def extendPokers(self, poker_list: list) -> None:
         self._pokers.extend(poker_list)
 
     def getFormatPokers(self) -> list:
@@ -90,7 +90,7 @@ class Pokers(object):
     def getType(self) -> PokerType:
         return self._type
 
-    def sortGetType(self):
+    def sortGetType(self) -> None:
         self.sortPokers()
         length = len(self._format_pokers)
         repeat_values = self._repeat_dict.values()
@@ -185,17 +185,17 @@ class Pokers(object):
             else:
                 self._type = PokerType.none_type
 
-    def sortPokers(self):
+    def sortPokers(self) -> None:
         self._pokers.sort(reverse=False)
         self._formatPokers()
         self._repeatDict()
 
-    def _formatPokers(self):
+    def _formatPokers(self) -> None:
         self._format_pokers = self._pokers.copy()
         for idx, poker in enumerate(self._pokers):
             self._format_pokers[idx] = poker.getValueNoColor()
 
-    def _repeatDict(self):
+    def _repeatDict(self) -> None:
         self._repeat_dict = {}
         for poker in self._format_pokers:
             self._repeat_dict[poker] = self._repeat_dict.get(poker, 0) + 1
@@ -324,7 +324,7 @@ class Pokers(object):
             else:
                 return False
 
-    def _compareFirstMostValue(self, other):
+    def _compareFirstMostValue(self, other) -> bool:
         left_dict = self._repeat_dict
         right_dict = other._repeat_dict
 
@@ -348,7 +348,7 @@ class PokerStack(Pokers):
         self.__initPokerStack()
         self.__shufflePokerStack()
 
-    def __initPokerStack(self):
+    def __initPokerStack(self) -> None:
         for color in POKER_COLOR:
             for number in POKER_NUMBER:
                 poker = Poker(color, number)
@@ -358,7 +358,7 @@ class PokerStack(Pokers):
             poker = Poker('', king)
             self._pokers.append(poker)
 
-    def __shufflePokerStack(self):
+    def __shufflePokerStack(self) -> None:
         # random.seed(20210730)
         random.shuffle(self._pokers)
 
@@ -383,13 +383,13 @@ class SimplePlayer(Pokers):
     def getId(self) -> int:
         return self.__id
 
-    def showPokers(self):
+    def showPokers(self) -> str:
         rlt = ''
         for idx, poker in enumerate(self._pokers):
             rlt += f"[{idx}]:{poker} "
         return rlt
 
-    def outPokers(self, index: list, previous: Pokers):
+    def outPokers(self, index: list, previous: Pokers) -> Pokers or None:
         index = list(set(index))
         index.sort(reverse=True)
         out = Pokers()

@@ -6,27 +6,36 @@
 # @File    : server.py
 # @Software: PyCharm
 from flask import Flask, request, jsonify
-from game import Game
+from game import Game, Pokers, PokerType
+from net_basic import ReturnState
 
 
 class Server(Game):
     def __init__(self):
         super().__init__()
 
-        self._ip_list = []
-        self.current_id = -1
+        self.__ip_list = []
+        self.__current_id = -1
 
     def getIPList(self):
-        return self._ip_list
+        return self.__ip_list
 
     def setIPList(self, new_ip_list):
-        self._ip_list = new_ip_list
+        self.__ip_list = new_ip_list
+
+    def getCurrentId(self):
+        return self.__current_id
+
+    def setCurrentId(self, id_):
+        self.__current_id = id_
 
     pass
 
 
 app = Flask(__name__)
 server = Server()
+g_previous = Pokers()
+g_skip_cnt = 0
 
 
 @app.route('/')
@@ -37,21 +46,23 @@ def index():
 @app.route('/player', methods=['GET', 'POST'])
 def player():
     if request.method == 'GET':
-
         return jsonify("Get Player")
     elif request.method == 'POST':
-        cur_list = server.getIPList()
-        cur_list.append(request.form['ip'])
-        server.setIPList(cur_list)
+        post = request.form
+        current_list = server.getIPList()
+        current_list.append(post['ip'])
+        server.setIPList(current_list)
         server.addPlayer()
-        if len(cur_list) == 3:
+        num = server.getPlayerNum()
+        if num == 3:
             server.setLandlord(server.getPlayerList()[0])
-            server.current_id = server.getLandlord_id()
-            pass
+            server.setCurrentId(server.getLandlordId())
 
-        return jsonify("Post Player")
-
-    pass
+        return jsonify(
+            {
+                'player_id': num - 1
+            }
+        )
 
 
 @app.route('/pokers/<int:player_id>')
@@ -62,15 +73,50 @@ def getPokers(player_id):
 
 @app.route('/pokers', methods=['POST'])
 def postPokers():
+    global g_previous, g_skip_cnt
+
+    if g_skip_cnt == 2:
+        g_skip_cnt = 0
+        g_previous = Pokers()
+
     post = request.form
-    id_ = post['id']
-    index = post['idx']
-    return jsonify(id_)
+    id_ = int(post['player_id'])
+    cmd = post['cmd']
+    if id_ != server.getCurrentId():
+        return jsonify(ReturnState.not_current.value)
+
+    current_player = server.getPlayerList()[id_]
+    cmd_list = list(map(int, cmd.split()))
+    if len(cmd_list) == 0:
+        return jsonify(ReturnState.error_out.value)
+    elif cmd_list[0] == -1:
+        g_previous.sortGetType()
+        if g_previous.getType() == PokerType.empty:
+            return jsonify(ReturnState.cannot_skip.value)
+        else:
+            g_skip_cnt += 1
+            server.setCurrentId((server.getCurrentId() + 1) % 3)
+            return jsonify(ReturnState.can_skip.value)
+    else:
+        out = current_player.outPokers(cmd_list, g_previous)
+        if out:
+            g_previous = out
+            server.setCurrentId((server.getCurrentId() + 1) % 3)
+            g_skip_cnt = 0
+            return jsonify(ReturnState.succeed_out.value)
+        else:
+            return jsonify(ReturnState.error_out.value)
+
+
+@app.route('/previous')
+def getPrevious():
+    global g_previous
+    return jsonify(str(g_previous))
 
 
 @app.route('/current')
 def current():
-    return jsonify(server.current_id)
+    return jsonify(server.getCurrentId())
 
 
 if __name__ == '__main__':

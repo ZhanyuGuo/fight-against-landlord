@@ -8,13 +8,16 @@
 from time import strftime
 import socket
 import requests
+from net_basic import ReturnState
 
 
 class Client(object):
-    def __init__(self, ip, id_, port=5000):
-        self.url = f"http://{ip}:{port}/"
-        self.id = id_
-        pass
+    def __init__(self, ip, port=5000):
+        self.__url = f"http://{ip}:{port}/"
+        self.__id = -1
+
+    def getId(self):
+        return self.__id
 
     @staticmethod
     def getLocalIP():
@@ -26,54 +29,85 @@ class Client(object):
             s.close()
         return ip
 
-    def postPlayer(self):
+    def postPlayerToServer(self):
         post = {'ip': self.getLocalIP()}
-        r = requests.post(self.url + "player", data=post)
+        r = requests.post(self.__url + "player", data=post)
         rlt = r.json()
+        self.__id = int(rlt['player_id'])
         return rlt
 
-    def getPokersFromServer(self):
-        r = requests.get(self.url + f"pokers/{self.id}")
-        rlt = r.json()
-        return str(rlt)
-
-    def postPokersToServer(self, index):
-        post = {'id': self.id, 'idx': index}
-        r = requests.post(self.url + "pokers", data=post)
-        rlt = r.json()
-        return rlt
-
-    def getCurrentPlayer(self):
-        r = requests.get(self.url + "current")
+    def getCurrentPlayerFromServer(self):
+        r = requests.get(self.__url + "current")
         rlt = r.json()
         return int(rlt)
 
-    pass
+    def getPokersFromServer(self):
+        r = requests.get(self.__url + f"pokers/{self.__id}")
+        rlt = r.json()
+        return str(rlt)
+
+    def getPreviousFromServer(self):
+        r = requests.get(self.__url + "previous")
+        rlt = r.json()
+        return rlt
+
+    def postCmdToServer(self, cmd_):
+        post = {'player_id': self.__id, 'cmd': cmd_}
+        r = requests.post(self.__url + "pokers", data=post)
+        rlt = r.json()
+        return int(rlt)
+
+    # def __del__(self):
+    #     pass
 
 
 def getLogTime():
-    return f"[{strftime('%H:%M:%S')}]"
+    return f"[{strftime('%H:%M:%S')}] "
 
 
 def main():
-    print(f"{getLogTime()} 欢迎！斗地主v1.0！")
-    ip_address = input(f"{getLogTime()} 请输入服务器IP地址：[127.0.0.1]\r\n")
+    print(f"{getLogTime()}欢迎！斗地主v1.0！[默认输入]")
+    ip_address = input(f"{getLogTime()}请输入服务器IP地址：[127.0.0.1] ")
     if ip_address == '':
         ip_address = "127.0.0.1"
 
-    player_id = int(input(f"{getLogTime()} 请输入玩家ID号(0, 1, 2)：\r\n"))
-    client = Client(ip_address, player_id)
-    rlt = client.postPlayer()
-    input()
-    rlt = client.postPokersToServer('')
-    print(rlt)
-    # while True:
-    #     input(f"{getLogTime()} 输入回车刷新：")
-    #     rlt = client.getPokersFromServer()
-    #     print(rlt)
-    #     cur = client.getCurrentPlayer()
-    #     if cur != client.id:
-    #         continue
+    client = Client(ip_address)
+    rlt = client.postPlayerToServer()
+    print(getLogTime(), rlt)
+
+    while True:
+        input(f"{getLogTime()}等待玩家，输入回车刷新：")
+        rlt = client.getCurrentPlayerFromServer()
+        if rlt != -1:
+            break
+
+    while True:
+        input(f"{getLogTime()}等待出牌，输入回车刷新：")
+        rlt = client.getPokersFromServer()
+        print(f"{getLogTime()}你是玩家{client.getId()}，你的手牌是：")
+        print(rlt)
+        current_player = client.getCurrentPlayerFromServer()
+        previous = client.getPreviousFromServer()
+        print(f"{getLogTime()}当前出牌：玩家{current_player}，最新出牌：{previous}")
+        if current_player == client.getId():
+            while True:
+                cmd = input(f"{getLogTime()}选择牌号（空格间隔），或输入-1跳过：")
+                rlt = client.postCmdToServer(cmd)
+                if rlt == ReturnState.succeed_out:
+                    print(f"{getLogTime()}出牌成功")
+                    break
+                elif rlt == ReturnState.error_out:
+                    print(f"{getLogTime()}出牌错误")
+                    continue
+                elif rlt == ReturnState.can_skip:
+                    print(f"{getLogTime()}跳过成功")
+                    break
+                elif rlt == ReturnState.cannot_skip:
+                    print(f"{getLogTime()}不可跳过")
+                elif rlt == ReturnState.not_current:
+                    break
+                else:
+                    break
 
     pass
 

@@ -19,8 +19,11 @@ class Game(object):
     def getPlayerList(self) -> list:
         return self._player_list
 
-    def getLandlord_id(self) -> int:
+    def getLandlordId(self) -> int:
         return self._landlord_id
+
+    def getPlayerNum(self) -> int:
+        return self._player_num
 
     def addPlayer(self) -> SimplePlayer:
         self._player_num += 1
@@ -28,7 +31,7 @@ class Game(object):
         self._player_list.append(new_player)
         return new_player
 
-    def setLandlord(self, player: SimplePlayer):
+    def setLandlord(self, player: SimplePlayer) -> None:
         player.extendPokers(self._landlord_pokers.getPokers())
         player.sortPokers()
         self._landlord_id = player.getId()
@@ -64,7 +67,7 @@ class Game(object):
             print('================ 抢地主结束 ================')
             return True
 
-    def run_a_game(self):
+    def run_a_game(self) -> None:
         player_0 = self._player_list[0]
         player_1 = self._player_list[1]
         player_2 = self._player_list[2]
@@ -129,7 +132,7 @@ class Game(object):
             else:
                 print('农民获胜')
 
-    def run(self):
+    def run(self) -> None:
         while True:
             self.__init__()
             player_a = self.addPlayer()
