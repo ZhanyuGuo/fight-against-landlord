@@ -23,6 +23,11 @@ namespace PokerGame
 
 	};
 
+	class NotEnoughBufferLengthException : public std::exception 
+	{
+
+	};
+
 	class PokerCard 
 	{
 	public:
@@ -52,6 +57,7 @@ namespace PokerGame
 		virtual PokerCardCollection& operator<< (PokerCard card) = 0;
 		virtual PokerCardCollection& operator<< (PokerCardCollection& collection) = 0;
 		virtual PokerCard operator[](int index) = 0;
+		virtual void Serialize(char* buf, int len) = 0;
 		//virtual const PokerCard operator[](int index) const = 0;
 		virtual bool ContainsCard(PokerCard card) = 0;
 		virtual bool ContainsCollection(PokerCardCollection& other) = 0;
@@ -70,6 +76,7 @@ namespace PokerGame
 		virtual PokerCardCollection& operator<< (PokerCard card);
 		virtual PokerCardCollection& operator<< (PokerCardCollection& collection);
 		virtual PokerCard operator[](int index);
+		virtual void Serialize(char* buf, int len);
 		virtual bool ContainsCard(PokerCard card);
 		virtual bool ContainsCollection(PokerCardCollection& other);
 		virtual std::string ToString();

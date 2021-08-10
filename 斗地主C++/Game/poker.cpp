@@ -244,6 +244,25 @@ namespace PokerGame
 		}
 	}
 
+	void IdBasedCardCollection::Serialize(char* buf, int len)
+	{
+		if (len < this->cards.size())
+		{
+			throw NotEnoughBufferLengthException();
+		}
+		char* ptr = buf;
+		for (int i = 0; i < this->cards.size(); i++)
+		{
+			*ptr = static_cast<char>(this->cards[i]);
+			ptr++;
+		}
+		for (int i = this->cards.size(); i < len; i++)
+		{
+			*ptr = '\0';
+			ptr++;
+		}
+	}
+
 	bool IdBasedCardCollection::ContainsCard(PokerCard card)
 	{
 		throw NotImplementedException();

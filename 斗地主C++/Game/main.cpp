@@ -2,6 +2,7 @@
 #include <memory>
 #include "poker.h"
 #include "game.h"
+#include "onlinegame.h"
 
 using std::string;
 
@@ -20,10 +21,8 @@ private:
 	char a[0x7fffffff];
 };
 
-
-int main()
+void localTest()
 {
-	//system("chcp 65001");
 
 	//using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
 	using Tester = PokerGame::FAL::ManualLocalPlayer;
@@ -38,6 +37,28 @@ int main()
 
 	int a;
 	std::cin >> a;
+}
+
+void onlineTest()
+{
+	WORD wsaVR = MAKEWORD(2, 2);
+	WSADATA lp;
+	WSAStartup(wsaVR, &lp);
+
+	PokerGame::FAL::OnlineServer server;
+	server.Init();
+	server.Startup();
+
+	int a;
+	std::cin >> a;
+}
+
+int main()
+{
+	onlineTest();
+
+
+	
 	return 0;
 }
 
