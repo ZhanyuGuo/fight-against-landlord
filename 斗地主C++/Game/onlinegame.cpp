@@ -1,4 +1,5 @@
 ﻿#include "onlinegame.h"
+#include <algorithm>
 #include <thread>
 #include <iostream>
 #include <fstream>
@@ -15,6 +16,8 @@ namespace PokerGame
 		void OnlineServer::Start()
 		{
 			auto broadcastSceneThread = std::thread(&OnlineServer::BroadCastSceneThread, this);
+			broadcastSceneThread.detach();
+			auto serviceListenThread = std::thread(&OnlineServer::ListenThread, this);
 			broadcastSceneThread.detach();
 		}
 
@@ -109,9 +112,32 @@ namespace PokerGame
 		{
 			while (true)
 			{
-				char buffer[100];
+				#pragma message("注意回收内存")
+				char* buffer = new char[100];
 				sockaddr_in clientIP = {0};
-				
+				int nameSize = sizeof(sockaddr_in);
+				int rcvdLen = 
+					recvfrom(this->serviceSocketFD, 
+						buffer, 
+						100, 
+						0, 
+						reinterpret_cast<sockaddr*>(&clientIP), 
+						&nameSize);
+				if (rcvdLen == -1)
+				{
+					int err = WSAGetLastError();
+					//TODO : 考虑更多错误代码的处理方式
+					switch (err)
+					{
+					case WSAEMSGSIZE:
+						break;
+					default:
+						std::cout << "service thread dead:" << err;
+						return;
+					}
+				}
+				auto msgProcessThread = std::thread(&OnlineServer::HandleMessage, this, buffer, rcvdLen, clientIP);
+				msgProcessThread.detach();
 			}
 		}
 
@@ -178,6 +204,44 @@ namespace PokerGame
 			this->lordCards.reset(new IdBasedCardCollection());
 		}
 
+		void OnlineServer::HandleMessage(char* buf, int bufLen, sockaddr_in addr)
+		{
+			if (bufLen < 2 * sizeof(int))
+			{
+				delete[] buf;
+				return;
+			}
+			int* pIntBuf = reinterpret_cast<int*>(buf);
+			int nameHash = pIntBuf[0];
+			int opertionType = pIntBuf[1];
+			int playerIndex = this->FindPlayerIndex(nameHash, addr);
+			if (playerIndex == -1)
+			{
+
+			}
+			else
+			{
+
+			}
+			delete[] buf;
+		}
+
+		int OnlineServer::FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept
+		{
+			ClientID clientID;
+			clientID.nameHashCode = nameHash;
+			clientID.ip = addr;
+			for (int index = 0; index < 3; index++)
+			{
+				auto joinedClient = *const_cast<ClientID*>(&this->playerIDs[index]);
+				if (clientID == joinedClient)
+				{
+					return index;
+				}
+			}
+			return -1;
+		}
+
 		Scene OnlineServer::FormCurrentScene() noexcept
 		{
 			Scene currentScene;
@@ -185,7 +249,24 @@ namespace PokerGame
 			this->lastAct->Serialize(currentScene.LastCardDrop, 20);
 			this->secondLastAct->Serialize(currentScene.SecondLastCardDrop, 20);
 			currentScene.ActiveIndex = static_cast<char>(this->nextActPlayerIndex);
-			currentScene.ActiveType = this->nextActType;
+			switch (this->gameStage)
+			{
+			case STAGE_DETERMINE_LANDLORD:
+			{
+				auto maxWill = std::max_element(std::begin(this->landlordWillingness), std::end(this->landlordWillingness));
+				currentScene.ActiveParam = *maxWill + 1;
+				break;
+			}
+			case STAGE_MAINLOOP_ONGOING:
+			{
+				currentScene.ActiveParam = this->nextActType;
+				break;
+			}
+			default:
+				currentScene.ActiveParam = '\0';
+				break;
+			}
+			currentScene.ActiveParam = this->nextActType;
 			for (int i = 0; i < 3; i++)
 			{
 				currentScene.CardLeftCount[i] = static_cast<char>(this->playerCards[i]->Count());

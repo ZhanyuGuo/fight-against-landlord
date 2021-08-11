@@ -21,6 +21,9 @@ namespace PokerGame
 		constexpr auto ACTIVE_TYPE_ACTIVE = ((char)0);
 		constexpr auto ACTIVE_TYPE_FOLLOW = ((char)1);
 		constexpr auto ACTIVE_TYPE_PASS = ((char)2);
+		constexpr auto ACTIVE_PARAM_1 = ((char)1);
+		constexpr auto ACTIVE_PARAM_2 = ((char)2);
+		constexpr auto ACTIVE_PARAM_3 = ((char)3);
 
 		struct Scene
 		{
@@ -28,7 +31,7 @@ namespace PokerGame
 			char LandlordWillingness[3];
 			char LandlordIndex;
 			char ActiveIndex;
-			char ActiveType;
+			char ActiveParam;
 			char CardLeftCount[3];
 			char LandlordCards[3];
 			char LastActType;
@@ -44,7 +47,7 @@ namespace PokerGame
 		public:
 			int nameHashCode;
 			sockaddr_in ip;
-			bool operator== (ClientID& other)
+			bool operator== (ClientID& other) 
 			{
 				if (this->nameHashCode != other.nameHashCode)
 				{
@@ -82,6 +85,8 @@ namespace PokerGame
 			void ListenThread();
 			void NetInit();
 			void GameReset();
+			void HandleMessage(char* buf, int bufLen, sockaddr_in addr);
+			int FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept;
 			Scene FormCurrentScene() noexcept;
 		private:
 			int multicastPort;
