@@ -116,6 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\Repository\fight-against-landlord\斗地主C++\jsoncpp\include;D:\Repository\fight-against-landlord\斗地主C++\jsoncpp\include\json;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,6 +140,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\jsoncpp\src\lib_json\json_reader.cpp" />
+    <ClCompile Include="..\jsoncpp\src\lib_json\json_value.cpp" />
+    <ClCompile Include="..\jsoncpp\src\lib_json\json_writer.cpp" />
     <ClCompile Include="cardtype.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="main.cpp" />

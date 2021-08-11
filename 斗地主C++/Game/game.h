@@ -72,7 +72,7 @@ namespace PokerGame
 		{
 		public:
 			OnlinePlayer();
-			OnlinePlayer(int port);
+			OnlinePlayer(int broadcastPort);
 		};
 
 		class LocalPlayer : public Player

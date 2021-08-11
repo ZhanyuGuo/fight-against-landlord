@@ -7,7 +7,6 @@
 
 #include <string>
 #include <memory>
-
 #include "poker.h"
 #include "cardtype.h"
 
@@ -39,33 +38,63 @@ namespace PokerGame
 			char WinnerFlag;
 		};
 
-		//int scene_struct_len = sizeof(Scene);
-
+		// 以名称的hash code和ip地址作为客户端的身份标识
 		struct ClientID
 		{
-			int hashCode;
+		public:
+			int nameHashCode;
 			sockaddr_in ip;
+			bool operator== (ClientID& other)
+			{
+				if (this->nameHashCode != other.nameHashCode)
+				{
+					return false;
+				}
+				long long thisAddr = *reinterpret_cast<long long*>(&(this->ip));
+				long long otherAddr = *reinterpret_cast<long long*>(&(other.ip));
+				return (this->nameHashCode == other.nameHashCode);
+			}
 		};
+
+		// 1478206855 是C#中"NULL".GetHashCode()的返回值
+		constexpr ClientID NullPlayer = { 1478206855 , {AF_INET, INADDR_ANY, 0} };
 
 		class OnlineServer
 		{
 		public:
-			void Startup();
+			void Start();
 			void Reset();
+			/// <summary>
+			/// 初始化此Server, 调用Start()方法前务必调用此方法, 否则行为是未定义的
+			/// </summary>
 			void Init();
+			/// <summary>
+			/// 使用默认的值进行构造, 通常不可移植, 需要手动将源文件中的值设置为本机值然后重新生成
+			/// </summary>
 			OnlineServer();
-			OnlineServer(int port);
+			/// <summary>
+			/// 从Json文件加载参数
+			/// </summary>
+			/// <param name="configPath">Json文件的路径</param>
+			OnlineServer(std::string configPath);
 		private:
 			void BroadCastSceneThread();
 			void ListenThread();
 			void NetInit();
 			void GameReset();
-			int port;
-			volatile int resetFlag;
-			sockaddr_in clientBroadCastAddr;
-			SOCKET broadcastSocket_fd;
 			Scene FormCurrentScene() noexcept;
-			ClientID playerIDs[3];
+		private:
+			int multicastPort;
+			int multicastLocalBindPort;
+			int serviceListenPort;
+			std::string multicastIP;
+			std::string multicastLocalBindIP;
+			sockaddr_in clientBroadCastAddr;
+			SOCKET broadcastSocketFD;
+			SOCKET serviceSocketFD;
+			volatile ClientID playerIDs[3];
+		private:
+			volatile int resetFlag;
 			char gameStage;
 			bool isLandlordDetermined;
 			char landlordWillingness[3];

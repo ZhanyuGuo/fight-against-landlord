@@ -1,0 +1,7 @@
+{
+  "MulticastIP": "239.0.1.10",
+  "MulticastPort": 6666,
+  "MulticastLocalBindIP": "192.168.1.102",
+  "MulticastLocalBindPort": 6660,
+  "ServiceListenPort": 6665
+}

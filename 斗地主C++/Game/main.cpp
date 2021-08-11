@@ -4,26 +4,9 @@
 #include "game.h"
 #include "onlinegame.h"
 
-using std::string;
-
-void test() noexcept
-{
-	throw std::exception();
-}
-
-class A {
-public:
-	A()
-	{
-		throw PokerGame::FAL::NotSameTypeException();
-	}
-private:
-	char a[0x7fffffff];
-};
-
 void localTest()
 {
-
+	using std::string;
 	//using Tester = PokerGame::FAL::StupidLocalPlayerForDebugging;
 	using Tester = PokerGame::FAL::ManualLocalPlayer;
 	std::shared_ptr<PokerGame::FAL::Player>
@@ -41,13 +24,19 @@ void localTest()
 
 void onlineTest()
 {
+	using namespace std::string_literals;
+
 	WORD wsaVR = MAKEWORD(2, 2);
 	WSADATA lp;
-	WSAStartup(wsaVR, &lp);
+	int startSucc = WSAStartup(wsaVR, &lp);
+	if (startSucc != 0)
+	{
+		return;
+	}
 
-	PokerGame::FAL::OnlineServer server;
+	PokerGame::FAL::OnlineServer server("ServerConfig.json"s);
 	server.Init();
-	server.Startup();
+	server.Start();
 
 	int a;
 	std::cin >> a;
@@ -56,9 +45,6 @@ void onlineTest()
 int main()
 {
 	onlineTest();
-
-
-	
 	return 0;
 }
 

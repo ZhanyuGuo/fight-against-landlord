@@ -1,12 +1,18 @@
 ﻿#include "onlinegame.h"
 #include <thread>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include "json.h"
+
+using namespace std::string_literals;
 
 namespace PokerGame
 {
 	namespace FAL
 	{
 
-		void OnlineServer::Startup()
+		void OnlineServer::Start()
 		{
 			auto broadcastSceneThread = std::thread(&OnlineServer::BroadCastSceneThread, this);
 			broadcastSceneThread.detach();
@@ -17,8 +23,10 @@ namespace PokerGame
 			this->resetFlag = 0b1;
 			while (this->resetFlag)
 			{
-
+				using namespace std::chrono_literals;
+				std::this_thread::sleep_for(1s);
 			}
+			this->GameReset();
 		}
 
 		void OnlineServer::Init()
@@ -36,13 +44,37 @@ namespace PokerGame
 
 		OnlineServer::OnlineServer()
 		{
-			this->port = 6666;
-			
+			this->multicastPort = 6666;
+			this->multicastLocalBindPort = 6660;
+			this->multicastIP = "239.0.1.10"s;
+			this->multicastLocalBindIP = "192.168.1.102"s;
+			this->serviceListenPort = 6665;
 		}
 
-		OnlineServer::OnlineServer(int port)
+		OnlineServer::OnlineServer(std::string configPath)
 		{
-			throw std::exception("not implemented yet");
+			Json::CharReaderBuilder readerBuilder;
+			Json::Value config;
+			std::unique_ptr<Json::CharReader> const reader(readerBuilder.newCharReader());
+
+			std::ifstream fileIn(configPath.c_str(), std::ios::binary);
+			if (!fileIn.is_open())
+			{
+				throw std::exception();
+			}
+			std::stringstream configSS;
+			std::string configJsonStr;
+			std::string parseErr;
+			configSS << fileIn.rdbuf();
+			configJsonStr = configSS.str();
+
+			reader->parse(configJsonStr.c_str(), configJsonStr.c_str() + configJsonStr.length(), &config, &parseErr);
+			
+			this->multicastPort = config["MulticastPort"].asInt();
+			this->multicastIP = config["MulticastIP"].asString();
+			this->multicastLocalBindPort = config["MulticastLocalBindPort"].asInt();
+			this->multicastLocalBindIP = config["MulticastLocalBindIP"].asString();
+			this->serviceListenPort = config["ServiceListenPort"].asInt();
 		}
 
 		void OnlineServer::BroadCastSceneThread()
@@ -57,7 +89,7 @@ namespace PokerGame
 				}
 
 				Scene current = this->FormCurrentScene();
-				int sentlen = sendto(this->broadcastSocket_fd,
+				int sentlen = sendto(this->broadcastSocketFD,
 					reinterpret_cast<char*>(&current),
 					sizeof(Scene),
 					0,
@@ -66,7 +98,8 @@ namespace PokerGame
 				using namespace std::chrono_literals;
 				if (sentlen == -1)
 				{
-
+					std::cout << "broadcast thread dead"s << std::endl;
+					break;
 				}
 				std::this_thread::sleep_for(0.5s);
 			}
@@ -74,23 +107,52 @@ namespace PokerGame
 
 		void OnlineServer::ListenThread()
 		{
+			while (true)
+			{
+				char buffer[100];
+				sockaddr_in clientIP = {0};
+				
+			}
 		}
 
 		void OnlineServer::NetInit()
 		{
-			this->broadcastSocket_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-			if (this->broadcastSocket_fd == INVALID_SOCKET)
+
+			// 初始化组播套接字
+			this->broadcastSocketFD = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+			if (this->broadcastSocketFD == INVALID_SOCKET)
 			{
+				std::cout << WSAGetLastError();
 				throw ServerInitFailedException();
 			}
 			this->clientBroadCastAddr.sin_family = AF_INET;
-			this->clientBroadCastAddr.sin_port = htons(this->port);
-			in_addr broadcastAddr;
-			inet_pton(AF_INET, "224.0.1.0", &broadcastAddr.s_addr);
-			inet_pton(AF_INET, "224.0.1.0", &this->clientBroadCastAddr.sin_addr.s_addr);
-			int setMultiCastResult = setsockopt(this->broadcastSocket_fd, IPPROTO_IP, IP_MULTICAST_IF, reinterpret_cast<char*>(&broadcastAddr), sizeof(in_addr));
-			if (setMultiCastResult != 0)
+			this->clientBroadCastAddr.sin_port = htons(this->multicastPort);
+			sockaddr_in localBind;
+			localBind.sin_family = AF_INET;
+			inet_pton(AF_INET, this->multicastLocalBindIP.c_str(), &localBind.sin_addr.s_addr);
+			localBind.sin_port = htons(this->multicastLocalBindPort);
+			int bindRet = bind(this->broadcastSocketFD, reinterpret_cast<sockaddr*>(&localBind), sizeof(sockaddr_in));
+			if (bindRet != 0)
 			{
+				std::cout << WSAGetLastError();
+				throw ServerInitFailedException();
+			}
+			inet_pton(AF_INET, this->multicastIP.c_str(), &this->clientBroadCastAddr.sin_addr.s_addr);
+		
+			// 初始化收听套接字
+			this->serviceSocketFD = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+			if (this->serviceSocketFD == INVALID_SOCKET)
+			{
+				throw ServerInitFailedException();
+			}
+			sockaddr_in serviceListenAddr;
+			serviceListenAddr.sin_family = AF_INET;
+			serviceListenAddr.sin_addr.s_addr = INADDR_ANY;
+			serviceListenAddr.sin_port = htons(this->serviceListenPort);
+			bindRet = bind(this->serviceSocketFD, reinterpret_cast<sockaddr*>(&serviceListenAddr), sizeof(sockaddr_in));
+			if (bindRet != 0)
+			{
+				std::cout << WSAGetLastError();
 				throw ServerInitFailedException();
 			}
 		}
