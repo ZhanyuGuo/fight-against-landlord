@@ -7,6 +7,7 @@
 
 #include <string>
 #include <memory>
+#include <mutex>
 #include "poker.h"
 #include "cardtype.h"
 
@@ -24,6 +25,11 @@ namespace PokerGame
 		constexpr auto ACTIVE_PARAM_1 = ((char)1);
 		constexpr auto ACTIVE_PARAM_2 = ((char)2);
 		constexpr auto ACTIVE_PARAM_3 = ((char)3);
+		constexpr int CLIENT_DATAGRAM_TYPE_JOIN = 1;
+		constexpr int CLIENT_DATAGRAM_TYPE_READY = 2;
+		constexpr int CLIENT_DATAGRAM_TYPE_GETCARD = 3;
+		constexpr int CLIENT_DATAGRAM_TYPE_POSTPOINT = 4;
+		constexpr int CLIENT_DATAGRAM_TYPE_POSTCARD = 5;
 
 		struct Scene
 		{
@@ -39,6 +45,7 @@ namespace PokerGame
 			char LastCardDrop[20];
 			char SecondLastCardDrop[20];
 			char WinnerFlag;
+			char ReadyFlag;
 		};
 
 		// 以名称的hash code和ip地址作为客户端的身份标识
@@ -47,15 +54,20 @@ namespace PokerGame
 		public:
 			int nameHashCode;
 			sockaddr_in ip;
-			bool operator== (ClientID& other) 
+			bool operator== (const ClientID& other) const
 			{
 				if (this->nameHashCode != other.nameHashCode)
 				{
 					return false;
 				}
-				long long thisAddr = *reinterpret_cast<long long*>(&(this->ip));
-				long long otherAddr = *reinterpret_cast<long long*>(&(other.ip));
-				return (this->nameHashCode == other.nameHashCode);
+				// 只比较ip是否相同，不管端口号
+				auto thisIP = this->ip.sin_addr.s_addr;
+				auto otherIP = other.ip.sin_addr.s_addr;
+				return (thisIP == otherIP);
+			}
+			bool operator!= (const ClientID& other) const
+			{
+				return !(*this == other);
 			}
 		};
 
@@ -85,10 +97,18 @@ namespace PokerGame
 			void ListenThread();
 			void NetInit();
 			void GameReset();
+			void PlayerReset();
 			void HandleMessage(char* buf, int bufLen, sockaddr_in addr);
+			void WriteBack(sockaddr_in addr, std::string content);
+			void WriteBack(sockaddr_in addr, char* buf, int len);
+			void HandlePlayerPrepare(int playerIndex);
+			void HandlePlayerDeterminLandlord(int playerIndex, int willingNess);
+			void HandlePlayerCardAct(int playerIndex, char* cardAct, int len);
 			int FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept;
 			Scene FormCurrentScene() noexcept;
-		private:
+			inline int GetAvailableIndex();
+			inline int IsAllPrepared();
+		private://网络通信相关字段
 			int multicastPort;
 			int multicastLocalBindPort;
 			int serviceListenPort;
@@ -97,8 +117,8 @@ namespace PokerGame
 			sockaddr_in clientBroadCastAddr;
 			SOCKET broadcastSocketFD;
 			SOCKET serviceSocketFD;
-			volatile ClientID playerIDs[3];
-		private:
+			ClientID playerIDs[3];
+		private://游戏数据相关字段
 			volatile int resetFlag;
 			char gameStage;
 			bool isLandlordDetermined;
@@ -109,10 +129,15 @@ namespace PokerGame
 			char lastActType;
 			char secondLastActType;
 			int winnerFlag;
+			int playerReadyFlag;
 			std::unique_ptr<PokerCardCollection> lastAct;
 			std::unique_ptr<PokerCardCollection> secondLastAct;
 			std::unique_ptr<PokerCardCollection> playerCards[3];
 			std::unique_ptr<PokerCardCollection> lordCards;
+		private://线程同步
+			std::mutex handlePrepareMutex;
+			std::mutex handleCardMutex;
+			std::mutex handleDetermineLandlordMutex;
 		};
 
 		class ServerInitFailedException : public std::exception
