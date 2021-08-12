@@ -8,7 +8,7 @@
 from time import strftime
 import socket
 import requests
-from net_basic import ReturnState
+from basic import ReturnState
 
 
 class Client(object):
@@ -67,11 +67,11 @@ def getLogTime():
 
 def main():
     print(f"{getLogTime()}欢迎！斗地主v1.0！[默认输入]")
-    ip_address = input(f"{getLogTime()}请输入服务器IP地址：[127.0.0.1] ")
-    if ip_address == '':
-        ip_address = "127.0.0.1"
+    ipAddress = input(f"{getLogTime()}请输入服务器IP地址：[127.0.0.1] ")
+    if ipAddress == '':
+        ipAddress = "127.0.0.1"
 
-    client = Client(ip_address)
+    client = Client(ipAddress)
     rlt = client.postPlayerToServer()
     print(getLogTime(), rlt)
 
@@ -86,30 +86,28 @@ def main():
         rlt = client.getPokersFromServer()
         print(f"{getLogTime()}你是玩家{client.getId()}，你的手牌是：")
         print(rlt)
-        current_player = client.getCurrentPlayerFromServer()
+        currentPlayer = client.getCurrentPlayerFromServer()
         previous = client.getPreviousFromServer()
-        print(f"{getLogTime()}当前出牌：玩家{current_player}，最新出牌：{previous}")
-        if current_player == client.getId():
+        print(f"{getLogTime()}当前出牌：玩家{currentPlayer}，最新出牌：{previous}")
+        if currentPlayer == client.getId():
             while True:
                 cmd = input(f"{getLogTime()}选择牌号（空格间隔），或输入-1跳过：")
                 rlt = client.postCmdToServer(cmd)
-                if rlt == ReturnState.succeed_out:
+                if rlt == ReturnState.succeedOut:
                     print(f"{getLogTime()}出牌成功")
                     break
-                elif rlt == ReturnState.error_out:
+                elif rlt == ReturnState.errorOut:
                     print(f"{getLogTime()}出牌错误")
                     continue
-                elif rlt == ReturnState.can_skip:
+                elif rlt == ReturnState.canSkip:
                     print(f"{getLogTime()}跳过成功")
                     break
-                elif rlt == ReturnState.cannot_skip:
+                elif rlt == ReturnState.cannotSkip:
                     print(f"{getLogTime()}不可跳过")
-                elif rlt == ReturnState.not_current:
+                elif rlt == ReturnState.notCurrent:
                     break
                 else:
                     break
-
-    pass
 
 
 if __name__ == '__main__':
