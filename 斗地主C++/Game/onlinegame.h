@@ -47,6 +47,7 @@ namespace PokerGame
 			char SecondLastCardDrop[20];
 			char WinnerFlag;
 			char ReadyFlag;
+			unsigned char ServiceAddr[4];
 		};
 
 		// 以名称的hash code和ip地址作为客户端的身份标识
@@ -120,6 +121,7 @@ namespace PokerGame
 			std::string multicastIP;
 			std::string multicastLocalBindIP;
 			sockaddr_in clientBroadCastAddr;
+			sockaddr_in serviceAddr;
 			SOCKET broadcastSocketFD;
 			SOCKET serviceSocketFD;
 			ClientID playerIDs[3];

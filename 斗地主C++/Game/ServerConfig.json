@@ -3,5 +3,6 @@
   "MulticastPort": 6666,
   "MulticastLocalBindIP": "192.168.1.101",
   "MulticastLocalBindPort": 6660,
+  "ServiceListenIP": "192.168.1.101", //该项或许不需要，因为和MulticastLocalBindIP是同一个
   "ServiceListenPort": 6665
 }

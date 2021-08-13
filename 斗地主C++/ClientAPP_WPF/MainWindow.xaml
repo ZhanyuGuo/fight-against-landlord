@@ -8,5 +8,32 @@
         Title="斗地主UDP客户端测试" Height="450" Width="800">
     <Grid>
 
+        <TextBox x:Name="ServerIPTextBox" HorizontalAlignment="Left" Margin="76,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="17" Text="此元素计划弃用" IsEnabled="False"/>
+        <TextBox x:Name="UserNameTextBox" HorizontalAlignment="Left" Margin="76,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="17"/>
+        <Label x:Name="UserNameLabel" Content="用户名" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Height="25" Width="46"/>
+        <Label x:Name="ServerIPLabel" Content="服务器IP" HorizontalAlignment="Left" Margin="10,34,0,0" VerticalAlignment="Top" Height="25" Width="57"/>
+        <Button x:Name="UserNameButton" Content="确认" HorizontalAlignment="Left" Margin="212,10,0,0" VerticalAlignment="Top" Click="UserNameButton_Click" Height="19" Width="28"/>
+        <Button x:Name="JoinServerButton" Content="加入" HorizontalAlignment="Left" Margin="212,37,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.053,-0.096" Click="JoinServerButton_Click" Height="19" Width="28"/>
+        <Button x:Name="PlayerCard1" Content="Card" HorizontalAlignment="Left" Margin="76,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard2" Content="Card" HorizontalAlignment="Left" Margin="140,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard3" Content="Card" HorizontalAlignment="Left" Margin="204,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard4" Content="Card" HorizontalAlignment="Left" Margin="268,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard5" Content="Card" HorizontalAlignment="Left" Margin="332,230,0,0" VerticalAlignment="Top" Height="87" Width="64" Grid.ColumnSpan="2"/>
+        <Button x:Name="PlayerCard6" Content="Card" HorizontalAlignment="Left" Margin="396,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard7" Content="Card" HorizontalAlignment="Left" Margin="460,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard8" Content="Card" HorizontalAlignment="Left" Margin="524,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard9" Content="Card" HorizontalAlignment="Left" Margin="588,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard10" Content="Card" HorizontalAlignment="Left" Margin="652,230,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard11" Content="Card" HorizontalAlignment="Left" Margin="76,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard12" Content="Card" HorizontalAlignment="Left" Margin="140,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard13" Content="Card" HorizontalAlignment="Left" Margin="204,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard14" Content="Card" HorizontalAlignment="Left" Margin="268,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard15" Content="Card" HorizontalAlignment="Left" Margin="332,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard16" Content="Card" HorizontalAlignment="Left" Margin="396,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard17" Content="Card" HorizontalAlignment="Left" Margin="460,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard18" Content="Card" HorizontalAlignment="Left" Margin="524,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard19" Content="Card" HorizontalAlignment="Left" Margin="588,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard20" Content="Card" HorizontalAlignment="Left" Margin="652,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+
     </Grid>
 </Window>

@@ -92,11 +92,11 @@ namespace PokerGame
 			{
 				throw ServerInitFailedException();
 			}
-			sockaddr_in serviceListenAddr;
-			serviceListenAddr.sin_family = AF_INET;
-			serviceListenAddr.sin_addr.s_addr = INADDR_ANY;
-			serviceListenAddr.sin_port = htons(this->serviceListenPort);
-			bindRet = bind(this->serviceSocketFD, reinterpret_cast<sockaddr*>(&serviceListenAddr), sizeof(sockaddr_in));
+			this->serviceAddr.sin_family = AF_INET;
+			// this->serviceAddr.sin_addr.s_addr = INADDR_ANY;
+			inet_pton(AF_INET, this->multicastLocalBindIP.c_str(), &this->serviceAddr.sin_addr.s_addr);
+			this->serviceAddr.sin_port = htons(this->serviceListenPort);
+			bindRet = bind(this->serviceSocketFD, reinterpret_cast<sockaddr*>(&this->serviceAddr), sizeof(sockaddr_in));
 			if (bindRet != 0)
 			{
 				std::cout << WSAGetLastError();
@@ -109,7 +109,7 @@ namespace PokerGame
 			auto broadcastSceneThread = std::thread(&OnlineServer::BroadCastSceneThread, this);
 			broadcastSceneThread.detach();
 			auto serviceListenThread = std::thread(&OnlineServer::ListenThread, this);
-			broadcastSceneThread.detach();
+			serviceListenThread.detach();
 		}
 
 		void OnlineServer::Reset()
@@ -534,6 +534,8 @@ namespace PokerGame
 			currentScene.SecondLastActType = this->secondLastActType;
 			currentScene.WinnerFlag = static_cast<char>(this->winnerFlag);
 			currentScene.ReadyFlag = static_cast<char>(this->playerReadyFlag);
+			auto addrRef = reinterpret_cast<ULONG*>(currentScene.ServiceAddr);
+			*addrRef = this->serviceAddr.sin_addr.s_addr;
 			return currentScene;
 		}
 
