@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
 #include "json.h"
 
 using namespace std::string_literals;
@@ -53,7 +54,7 @@ namespace PokerGame
 			{
 				this->NetInit();
 				this->GameReset();
-				this->PlayerReset();
+				this->ClientIDReset();
 			}
 			catch (ServerInitFailedException&)
 			{
@@ -120,37 +121,43 @@ namespace PokerGame
 				std::this_thread::sleep_for(1s);
 			}
 			this->GameReset();
-			this->PlayerReset();
+			this->ClientIDReset();
 		}
 
 		void OnlineServer::GameReset()
 		{
 			this->gameStage = STAGE_PREPARING;
 			ClientID playerIDs[3];
+			this->rng = std::default_random_engine(time(nullptr));
 			this->isLandlordDetermined = false;
 			std::fill(std::begin(this->landlordWillingness), std::end(this->landlordWillingness), '\0');
 			this->landlordIndex = 0;
 			this->nextActPlayerIndex = -1;
-			this->nextActType = ACTIVE_TYPE_ACTIVE;
+			this->nextActParam = ACTIVE_TYPE_ACTIVE;
 			this->lastActType = ACTIVE_TYPE_PASS;
 			this->secondLastActType = ACTIVE_TYPE_PASS;
 			this->winnerFlag = 0b000;
 			this->playerReadyFlag = 0b000;// 这里可能不需要重新准备
 			this->lastAct.reset(new IdBasedCardCollection());
 			this->secondLastAct.reset(new IdBasedCardCollection());
-			for (int i = 0; i < 3; i++)
-			{
-				this->playerCards[i].reset(new SortedCardCollection());
-			}
-			this->lordCards.reset(new IdBasedCardCollection());
+			this->PlayerCardsReset();
 		}
 
-		void OnlineServer::PlayerReset()
+		void OnlineServer::ClientIDReset()
 		{
 			for (int i = 0; i < 3; i++)
 			{
 				this->playerIDs[i] = NullPlayer;
 			}
+		}
+
+		void OnlineServer::PlayerCardsReset()
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				this->playerCards[i].reset(new SortedCardCollection());
+			}
+			this->lordCards.reset(new IdBasedCardCollection());
 		}
 
 		void OnlineServer::BroadCastSceneThread()
@@ -354,7 +361,10 @@ namespace PokerGame
 				this->playerReadyFlag |= 1 << playerIndex;
 				if (this->IsAllPrepared())
 				{
-					//TODO : 这里还需要完成分发手牌以及修改nextActiceIndex等
+					this->HandoutInitialCards();
+					this->startIndex = this->rng() % 3;
+					this->nextActPlayerIndex = this->startIndex;
+					this->nextActParam = ACTIVE_PARAM_1;
 					this->gameStage = STAGE_DETERMINE_LANDLORD;
 				}
 			}
@@ -369,7 +379,75 @@ namespace PokerGame
 		// 此函数无需向客户端写回, 客户端从组播的Scene中判断是否成功叫分
 		void OnlineServer::HandlePlayerDeterminLandlord(int playerIndex, int willingNess)
 		{
+			this->handleDetermineLandlordMutex.lock();
+			if (this->gameStage == STAGE_DETERMINE_LANDLORD)
+			{
+				if (playerIndex == this->nextActPlayerIndex)
+				{
+					int leastPoint = static_cast<int>(this->nextActParam);
+					if (willingNess >= leastPoint)
+					{
+						this->landlordWillingness[playerIndex] = willingNess;
+					}
+					else
+					{
+						this->landlordWillingness[playerIndex] = 0;
+					}
+					if (willingNess == 3)
+					{
+						// 叫3分即直接获得地主
+						this->SetLandlord(playerIndex);
+						this->nextActPlayerIndex = this->landlordIndex;
+						this->nextActParam = ACTIVE_TYPE_ACTIVE;
+						this->gameStage = STAGE_MAINLOOP_ONGOING;
+					}
+					else
+					{
+						this->MoveActiveIndexToNext();
+						auto maxWill = std::max_element(std::begin(this->landlordWillingness), std::end(this->landlordWillingness));
+						if (this->nextActPlayerIndex == this->startIndex)
+						{
+							// 已经叫了一轮而没有出现3分，则判断叫分最大值	
+							if (*maxWill == '\0')
+							{
+								// 无人叫分，重新发牌
+								this->PlayerCardsReset();
+								this->HandoutInitialCards();
+								this->startIndex = this->rng() % 3;
+								this->nextActPlayerIndex = this->startIndex;
+								this->nextActParam = ACTIVE_PARAM_1;
+							}
+							else
+							{
+								// 有人叫分，最大者获得地主
+								auto maxWillIndexL = std::distance(std::begin(this->landlordWillingness), maxWill);
+								int maxWillIndex = static_cast<int>(maxWillIndexL);
+								this->SetLandlord(maxWillIndex);
+								this->nextActPlayerIndex = this->landlordIndex;
+								this->nextActParam = ACTIVE_TYPE_ACTIVE;
+								this->gameStage = STAGE_MAINLOOP_ONGOING;
+							}
+							// this->gameStage = STAGE_DETERMINE_LANDLORD;
+						}
+						else
+						{
+							// 尚未叫完一轮，则轮到下一个玩家叫分
+							char natualIncreasedLeastPoint = this->nextActParam + 1;
+							char willBasedLeastPoint = *maxWill + 1;
+							this->nextActParam = max(natualIncreasedLeastPoint, willBasedLeastPoint);
+						}
+					}
+				}
+				else
+				{
 
+				}
+			}
+			else
+			{
+
+			}
+			this->handleDetermineLandlordMutex.unlock();
 		}
 
 		// 处理玩家的出牌请求
@@ -377,7 +455,20 @@ namespace PokerGame
 		// 此函数需要向客户端写回, 以在第一时间指示出牌是否成功 (虽然客户端也可以从组播的Scene判断, 但对于出牌来说延迟不应太大)
 		void OnlineServer::HandlePlayerCardAct(int playerIndex, char* cardAct, int len)
 		{
+			this->handleCardMutex.lock();
 
+			this->handleCardMutex.unlock();
+		}
+
+		void OnlineServer::HandoutInitialCards()
+		{
+			auto cardHeap = TakeOnlyCardCollection::Standard54();
+			for (int i = 0; i < 51; i++)
+			{
+				int playerIndex = i % 3;
+				cardHeap >> *this->playerCards[playerIndex];
+			}
+			*this->lordCards << cardHeap;
 		}
 
 		int OnlineServer::FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept
@@ -413,14 +504,14 @@ namespace PokerGame
 			}
 			case STAGE_MAINLOOP_ONGOING:
 			{
-				currentScene.ActiveParam = this->nextActType;
+				currentScene.ActiveParam = this->nextActParam;
 				break;
 			}
 			default:
 				currentScene.ActiveParam = '\0';
 				break;
 			}
-			currentScene.ActiveParam = this->nextActType;
+			currentScene.ActiveParam = this->nextActParam;
 			for (int i = 0; i < 3; i++)
 			{
 				currentScene.CardLeftCount[i] = static_cast<char>(this->playerCards[i]->Count());
@@ -461,6 +552,18 @@ namespace PokerGame
 		inline int OnlineServer::IsAllPrepared()
 		{
 			return this->playerReadyFlag == 0b111;
+		}
+
+		inline void OnlineServer::SetLandlord(int playerIndex)
+		{
+			this->landlordIndex = playerIndex;
+			this->isLandlordDetermined = true;
+			*this->playerCards[this->landlordIndex] << *this->lordCards;
+		}
+
+		inline void OnlineServer::MoveActiveIndexToNext()
+		{
+			this->nextActPlayerIndex = (this->nextActPlayerIndex + 1) % 3;
 		}
 	}
 }

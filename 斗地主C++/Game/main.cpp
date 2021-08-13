@@ -44,7 +44,10 @@ void onlineTest()
 
 int main()
 {
-	
+	//char a[] = { '0', '1', '2' , '1'};
+	//auto maxE = std::max_element(std::begin(a), std::end(a));
+	//auto maxEpos = std::distance(std::begin(a), maxE);
+	//std::cout << maxEpos;
 
 	onlineTest();
 	return 0;

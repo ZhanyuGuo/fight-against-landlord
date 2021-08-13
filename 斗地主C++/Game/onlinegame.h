@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <mutex>
+#include <random>
 #include "poker.h"
 #include "cardtype.h"
 
@@ -97,17 +98,21 @@ namespace PokerGame
 			void ListenThread();
 			void NetInit();
 			void GameReset();
-			void PlayerReset();
+			void ClientIDReset();
+			void PlayerCardsReset();
 			void HandleMessage(char* buf, int bufLen, sockaddr_in addr);
 			void WriteBack(sockaddr_in addr, std::string content);
 			void WriteBack(sockaddr_in addr, char* buf, int len);
 			void HandlePlayerPrepare(int playerIndex);
 			void HandlePlayerDeterminLandlord(int playerIndex, int willingNess);
 			void HandlePlayerCardAct(int playerIndex, char* cardAct, int len);
+			void HandoutInitialCards();
 			int FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept;
 			Scene FormCurrentScene() noexcept;
 			inline int GetAvailableIndex();
 			inline int IsAllPrepared();
+			inline void SetLandlord(int playerIndex);
+			inline void MoveActiveIndexToNext();
 		private://网络通信相关字段
 			int multicastPort;
 			int multicastLocalBindPort;
@@ -121,11 +126,13 @@ namespace PokerGame
 		private://游戏数据相关字段
 			volatile int resetFlag;
 			char gameStage;
+			int startIndex;
+			std::default_random_engine rng;
 			bool isLandlordDetermined;
 			char landlordWillingness[3];
 			int landlordIndex;
 			int nextActPlayerIndex;
-			char nextActType;
+			char nextActParam;
 			char lastActType;
 			char secondLastActType;
 			int winnerFlag;
