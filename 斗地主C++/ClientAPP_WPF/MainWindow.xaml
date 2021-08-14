@@ -34,6 +34,7 @@
         <Button x:Name="PlayerCard18" Content="Card" HorizontalAlignment="Left" Margin="524,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
         <Button x:Name="PlayerCard19" Content="Card" HorizontalAlignment="Left" Margin="588,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
         <Button x:Name="PlayerCard20" Content="Card" HorizontalAlignment="Left" Margin="652,317,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <TextBox x:Name="DebugTextBox" HorizontalAlignment="Left" Margin="280,12,0,0" Text="调试用文本框，啥都往这写" TextWrapping="Wrap" VerticalAlignment="Top" Width="436" Height="47"/>
 
     </Grid>
 </Window>

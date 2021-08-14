@@ -51,6 +51,10 @@ namespace ClientAPP_WPF
             {
                 cardButton.Visibility = Visibility.Hidden;
             }
+            core.DebugEvent += this.WriteToDebugTextBox;
+            core.NoHearingFromServer += this.NoHearingFromServerHandler;
+            core.SceneReceived += (Scene se) => { this.WriteToDebugTextBox(se.ParseIPAdress().ToString()); };
+            core.InitAndRun();
         }
 
         private ClientCore core;
@@ -88,6 +92,16 @@ namespace ClientAPP_WPF
             }
         }
 
+        private void NoHearingFromServerHandler()
+        {
+            this.ServerIPTextBox.Text = "event invoked";
+        }
+
+        private void WriteToDebugTextBox(string str)
+        {
+            this.DebugTextBox.Text = str;
+        }
+
         private void JoinServerButton_Click(object sender, RoutedEventArgs e)
         {
             //System.Diagnostics.Process.Start("explorer.exe", @"https://gitee.com/iLanceHe");
@@ -110,5 +124,7 @@ namespace ClientAPP_WPF
     伪异步网络通信
 欢迎提出建议与改进，本人Gitee主页https://gitee.com/iLanceHe ， 
 点击""确认""可以立即前往";
+
+
     }
 }
