@@ -24,6 +24,9 @@ namespace ClientAPP_WPF
         {
             InitializeComponent();
 
+            this.IsServerOK = false;
+            this.IsNameSet = false;
+
             this.core = new ClientCore();
             this.CardButtons = new List<Button> {
                 this.PlayerCard1,
@@ -47,39 +50,67 @@ namespace ClientAPP_WPF
                 this.PlayerCard19,                
                 this.PlayerCard20,
             };
+
             foreach(var cardButton in this.CardButtons)
             {
-                cardButton.Visibility = Visibility.Hidden;
+                // cardButton.Visibility = Visibility.Hidden;
             }
+
+            this.UserNameButton.IsEnabled = false;
+#if DEBUG
             core.DebugEvent += this.WriteToDebugTextBox;
-            core.NoHearingFromServer += this.NoHearingFromServerHandler;
+            core.ServerNotFound += () => { this.WriteToDebugTextBox("ServerNotFound"); };
+            core.ServerFound += () => { this.WriteToDebugTextBox("ServerFound"); };
             core.SceneReceived += (Scene se) => { this.WriteToDebugTextBox(se.ParseIPAdress().ToString()); };
-            core.InitAndRun();
+#endif
+
+            core.ServerFound += this.ServerFoundHandler;
+            core.ServerNotFound += this.ServerNotFoundHandler;
+            core.NoHearingFromServer += this.NoHearingFromServerHandler;
+            core.JoinGameFailed += this.JoinGameFailHandler;
+            core.SceneReceived += this.RenderCurrentScene;
+            
+
+            core.Init();
+
+            this.ServerStateLabel.Content = "正在扫描服务器...";
+            this.FindingServerBar.Visibility = Visibility.Visible;
+            core.ScanForServer();
         }
 
         private ClientCore core;
+        private Scene CurrentScene;
         private bool IsNameSet;
+        private bool IsServerOK;
         private List<Button> CardButtons;
-        private int UserNameHashCode { get => this.core.UserNameHashCode; set => this.core.UserNameHashCode = value; }
+        private byte[] UserNameHashCode { get => this.core.UserNameHashCode; set => this.core.UserNameHashCode = value; }
+        private int PlayerIndex { get => this.core.PlayerIndex; set => this.core.PlayerIndex = value; }
+        private int LastPlayerIndex { get => this.core.LastIndex; }
+        private int SecondLastPlayerIndex { get => this.core.SecondLastIndex; }
+  
+
         private void UserNameButton_Click(object sender, RoutedEventArgs e)
         {
             if (!this.IsNameSet)
             {
                 string name = this.UserNameTextBox.Text;
+                name = name.Trim();
+                this.UserNameTextBox.Text = name;
                 if (!string.IsNullOrWhiteSpace(name) && name != "NULL")
                 {
                     this.IsNameSet = true;
                     this.UserNameTextBox.IsEnabled = false;
-                    this.UserNameButton.Content = "修改";
-                    this.UserNameHashCode = name.GetHashCode();
-                    if (name == "Debug")
+                    this.UserNameButton.Content = "注销";
+                    this.UserNameHashCode = this.core.SHA256Generator.ComputeHash(Encoding.UTF8.GetBytes(name));
+                    if (name == "Admin")
                     {
                         this.EasterEgg();
                     }
+                    this.core.TryJoinGame();
                 }
                 else
                 {
-                    var _ = MessageBox.Show("名称不能为空或者\"NULL\"", "名称无效", MessageBoxButton.OK);
+                    _ = MessageBox.Show("名称不能为空或者\"NULL\"", "名称无效", MessageBoxButton.OK);
                 }
             }
             else
@@ -87,14 +118,120 @@ namespace ClientAPP_WPF
                 // this.UserNameTextBox.Text = string.Empty;
                 this.IsNameSet = false;
                 this.UserNameTextBox.IsEnabled = true;
-                this.UserNameButton.Content = "确定";
-                this.UserNameHashCode = 1478206855;
+                this.UserNameButton.Content = "登录";
+                this.UserNameHashCode = this.core.SHA256Generator.ComputeHash(Encoding.UTF8.GetBytes("NULL"));
             }
+        }
+
+
+        private const sbyte GAME_STAGE_PREPARING = 0;
+        private const sbyte GAME_STAGE_DETERMINE_LANDLORD = 1;
+        private const sbyte GAME_STAGE_MAINLOOP_ONGOING = 2;
+        private const sbyte GAME_STAGE_END = 3;
+        private const sbyte ACTIVE_TYPE_ACTIVE = 0;
+        private const sbyte ACTIVE_TYPE_FOLLOW = 1;
+        private const sbyte ACTIVE_TYPE_PASS = 2;
+        private const sbyte ACTIVE_PARAM_1 = 1;
+        private const sbyte ACTIVE_PARAM_2 = 2;
+        private const sbyte ACTIVE_PARAM_3 = 3;
+
+        private void RenderCurrentScene(Scene se)
+        {
+            if (!this.core.IsPlayerIndexValid)
+            {
+                return;
+            }
+            this.CurrentScene = se;
+            switch (se.CurrentStage)
+            {
+                case GAME_STAGE_PREPARING:
+                    {
+                        this.PrepareButton.Visibility = Visibility.Visible;
+                        this.Player1ReadyLabel.Visibility = Visibility.Visible;
+                        this.Player2ReadyLabel.Visibility = Visibility.Visible;
+                        if (this.IsPlayerPrepared(this.PlayerIndex))
+                        {
+                            this.PrepareButton.IsEnabled = false;
+                            this.PrepareButton.Content = "已准备";
+                        }
+                        else
+                        {
+                            this.PrepareButton.IsEnabled = true;
+                            this.PrepareButton.Content = "准备";
+                        }
+                        if (this.IsPlayerPrepared(this.LastPlayerIndex))
+                        {
+                            this.Player1ReadyLabel.Content = "已准备";
+                        }
+                        else
+                        {
+                            this.Player1ReadyLabel.Content = "未准备";
+                        }
+                        if (this.IsPlayerPrepared(this.SecondLastPlayerIndex))
+                        {
+                            this.Player2ReadyLabel.Content = "已准备";
+                        }
+                        else
+                        {
+                            this.Player2ReadyLabel.Content = "未准备";
+                        }
+                        break;
+                    }
+                case GAME_STAGE_DETERMINE_LANDLORD:
+                    {
+                        
+                        break;
+                    }
+                case GAME_STAGE_MAINLOOP_ONGOING:
+                    {
+                        
+                        break;
+                    }
+                case GAME_STAGE_END:
+                    {
+
+                        break;
+                    }
+                default:
+
+                    break;
+            }
+
         }
 
         private void NoHearingFromServerHandler()
         {
-            this.ServerIPTextBox.Text = "event invoked";
+            this.IsServerOK = false;
+            this.ServerStateLabel.Content = "与服务器的连接断开, \n正在尝试重连";
+            this.FindingServerBar.Visibility = Visibility.Visible;
+            this.UserNameButton.IsEnabled = false;
+            core.ScanForServer();
+        }
+
+        private void ServerFoundHandler()
+        {
+            this.IsServerOK = true;
+            this.FindingServerBar.Visibility = Visibility.Hidden;
+            this.ServerStateLabel.Content = "已经连接到服务器";
+            this.UserNameButton.IsEnabled = true;
+            this.core.KeepReceiveScene();
+            if (this.IsNameSet)
+            {
+                this.core.TryJoinGame();
+            }
+        }
+
+        private void ServerNotFoundHandler()
+        {
+            this.IsServerOK = false;
+            this.FindingServerBar.Visibility = Visibility.Hidden;
+            this.ServerStateLabel.Content = "未能找到服务器";
+            this.UserNameButton.IsEnabled = false;
+        }
+
+        private void JoinGameFailHandler()
+        {
+            MessageBox.Show("加入游戏失败，可能是服务器未响应、或者游戏已经满员。", "加入失败");
         }
 
         private void WriteToDebugTextBox(string str)
@@ -102,9 +239,29 @@ namespace ClientAPP_WPF
             this.DebugTextBox.Text = str;
         }
 
+        private bool IsPlayerPrepared(int index)
+        {
+            sbyte readyFlag = this.CurrentScene.ReadyFlag;
+            readyFlag &= (sbyte)(1 << index);
+            return readyFlag != 0;
+        }
+
+
         private void JoinServerButton_Click(object sender, RoutedEventArgs e)
         {
             //System.Diagnostics.Process.Start("explorer.exe", @"https://gitee.com/iLanceHe");
+        }
+
+        private void PrepareButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.core.IsPlayerIndexValid)
+            {
+                this.PrepareButton.IsEnabled = false;
+                this.PrepareButton.Content = "准备中";
+                this.core.PostReady();
+            }
+
+            //this.core;
         }
 
         private void EasterEgg()

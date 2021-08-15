@@ -1,8 +1,8 @@
 ﻿#pragma once
 #ifdef _WIN32
-	#include <WinSock2.h>
-	#include <ws2tcpip.h> 
-	#pragma comment(lib, "ws2_32.lib")
+#include <WinSock2.h>
+#include <ws2tcpip.h> 
+#pragma comment(lib, "ws2_32.lib")
 #endif // WIN32
 
 #include <string>
@@ -54,13 +54,16 @@ namespace PokerGame
 		struct ClientID
 		{
 		public:
-			int nameHashCode;
+			unsigned char nameHashCode[32];
 			sockaddr_in ip;
 			bool operator== (const ClientID& other) const
 			{
-				if (this->nameHashCode != other.nameHashCode)
+				for (int i = 0; i < 32; i++)
 				{
-					return false;
+					if (this->nameHashCode[i] != other.nameHashCode[i])
+					{
+						return false;
+					}
 				}
 				// 只比较ip是否相同，不管端口号
 				auto thisIP = this->ip.sin_addr.s_addr;
@@ -73,8 +76,13 @@ namespace PokerGame
 			}
 		};
 
-		// 1478206855 是C#中"NULL".GetHashCode()的返回值
-		constexpr ClientID NullPlayer = { 1478206855 , {AF_INET, INADDR_ANY, 0} };
+		// 此项值为"NULL"的UTF8编码的SHA256
+		constexpr ClientID NullPlayer =
+		{{	251,50,	144,0,	34,	140,197,162,
+			76,	38,	76,	87,	19,	157,232,191,
+			133,79,	200,111,193,139,241,192,
+			74,	182,26,	43,	92,	180,185,33	}, 
+			{AF_INET, INADDR_ANY, 0} };
 
 		class OnlineServer
 		{
@@ -108,7 +116,7 @@ namespace PokerGame
 			void HandlePlayerDeterminLandlord(int playerIndex, int willingNess);
 			void HandlePlayerCardAct(int playerIndex, char* cardAct, int len);
 			void HandoutInitialCards();
-			int FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept;
+			int FindPlayerIndex(char* NameHash, sockaddr_in addr) noexcept;
 			Scene FormCurrentScene() noexcept;
 			inline int GetAvailableIndex();
 			inline int IsAllPrepared();

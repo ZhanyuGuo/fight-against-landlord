@@ -127,7 +127,7 @@ namespace PokerGame
 		void OnlineServer::GameReset()
 		{
 			this->gameStage = STAGE_PREPARING;
-			ClientID playerIDs[3];
+			//ClientID playerIDs[3];
 			this->rng = std::default_random_engine(time(nullptr));
 			this->isLandlordDetermined = false;
 			std::fill(std::begin(this->landlordWillingness), std::end(this->landlordWillingness), '\0');
@@ -234,17 +234,17 @@ namespace PokerGame
 		// 该函数负责回收ListenThread申请的内存, 内部不要开启新的线程, 以免指针悬空
 		void OnlineServer::HandleMessage(char* buf, int bufLen, sockaddr_in addr)
 		{
-			constexpr int TwoSizeOfInt = 2 * sizeof(int);
-			if (bufLen < TwoSizeOfInt)
+			constexpr int SizeOfHead = sizeof(char[32]) + sizeof(int);
+			if (bufLen < SizeOfHead)
 			{
 				delete[] buf;
 				buf = nullptr;
 				return;
 			}
-			int* pIntBuf = reinterpret_cast<int*>(buf);
-			int nameHash = pIntBuf[0];
-			int operationType = pIntBuf[1];
-			int playerIndex = this->FindPlayerIndex(nameHash, addr);
+			int* pIntBuf = reinterpret_cast<int*>(buf + 32);
+			char* pNameHash = buf;
+			int operationType = pIntBuf[0];
+			int playerIndex = this->FindPlayerIndex(pNameHash, addr);
 			if (playerIndex == -1)
 			{
 				switch (operationType)
@@ -254,14 +254,17 @@ namespace PokerGame
 					int availIndex = this->GetAvailableIndex();
 					if (availIndex != -1)
 					{
-						this->playerIDs[availIndex].nameHashCode = nameHash;
+						auto pNameHashEnd = pNameHash + 32;
+						std::copy(pNameHash, pNameHashEnd, reinterpret_cast<char*>(&this->playerIDs[availIndex]));
 						this->playerIDs[availIndex].ip = addr;
 						std::string joinSuccess = std::to_string(availIndex);
+						std::cout << "客户端新加入,分配索引:"s << availIndex << std::endl;
 						this->WriteBack(addr, joinSuccess);
 					}
 					else
 					{
 						std::string joinFail("-1");
+						std::cout << "客户端加入失败（人满）"s << std::endl;
 						this->WriteBack(addr, joinFail);
 					}
 					break;
@@ -278,6 +281,7 @@ namespace PokerGame
 				case CLIENT_DATAGRAM_TYPE_JOIN:
 				{
 					std::string alreadyIn = std::to_string(playerIndex);
+					std::cout << "客户端重新加入:"s << playerIndex << std::endl;
 					// 考虑到客户端重启的情况，不论该客户端是否已经加入，都返回索引
 					this->WriteBack(addr, alreadyIn);
 					break;
@@ -299,7 +303,7 @@ namespace PokerGame
 				}
 				case CLIENT_DATAGRAM_TYPE_POSTPOINT:
 				{
-					int bufByteLeft = bufLen - TwoSizeOfInt;
+					int bufByteLeft = bufLen - SizeOfHead;
 					int willingness = 0;
 					if (bufByteLeft >= 4)
 					{
@@ -310,11 +314,11 @@ namespace PokerGame
 				}
 				case CLIENT_DATAGRAM_TYPE_POSTCARD:
 				{
-					int cardBufLen = bufLen - TwoSizeOfInt;
+					int cardBufLen = bufLen - SizeOfHead;
 					char* cardBuf = nullptr;
 					if (cardBufLen != 0)
 					{
-						cardBuf = buf + TwoSizeOfInt;
+						cardBuf = buf + SizeOfHead;
 					}
 					this->HandlePlayerCardAct(playerIndex, cardBuf, cardBufLen);
 					break;
@@ -471,10 +475,11 @@ namespace PokerGame
 			*this->lordCards << cardHeap;
 		}
 
-		int OnlineServer::FindPlayerIndex(int nameHash, sockaddr_in addr) noexcept
+		int OnlineServer::FindPlayerIndex(char* pNameHash, sockaddr_in addr) noexcept
 		{
 			ClientID clientID;
-			clientID.nameHashCode = nameHash;
+			auto pNameHashEnd = pNameHash + 32;
+			std::copy(pNameHash, pNameHashEnd, reinterpret_cast<char*>(clientID.nameHashCode));
 			clientID.ip = addr;
 			for (int index = 0; index < 3; index++)
 			{
@@ -543,7 +548,7 @@ namespace PokerGame
 		{
 			for (int i = 0; i < 3; i++)
 			{
-				if (this->playerIDs[i] != NullPlayer)
+				if (this->playerIDs[i] == NullPlayer)
 				{
 					return i;
 				}
