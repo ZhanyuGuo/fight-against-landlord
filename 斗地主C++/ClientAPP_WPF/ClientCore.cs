@@ -58,7 +58,8 @@ namespace ClientAPP_WPF
 
     public class ClientCore
     {
-        private UdpClient PrivateSocket;
+        private UdpClient ProcessHandlerSocket;
+        private UdpClient CardHandlerSocket;
         private Socket BroadcastReceiver;
 
         private int BroadcastReceiveErrorCount;
@@ -84,11 +85,14 @@ namespace ClientAPP_WPF
         public event Action JoinGameFailed;
         public event Action SelfTurnDetermineLandlord;
         public event Action SelfTurnCardAction;
+        public event Action<List<Poker>> CardInformationGot;
 
         public ClientCore()
         {
-            this.PrivateSocket = new UdpClient(AddressFamily.InterNetwork);
-            this.PrivateSocket.Client.ReceiveTimeout = 3000;
+            this.ProcessHandlerSocket = new UdpClient(AddressFamily.InterNetwork);
+            this.ProcessHandlerSocket.Client.ReceiveTimeout = 3000;
+            this.CardHandlerSocket = new UdpClient(AddressFamily.InterNetwork);
+            this.CardHandlerSocket.Client.ReceiveTimeout = 3000;
             this.BroadcastReceiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.IP);
             this.BroadcastIPAddress = IPAddress.Parse("239.0.1.10");
             this.BroadcastPort = 6666;
@@ -99,8 +103,6 @@ namespace ClientAPP_WPF
             this.PlayerIndex = -1;
             this.IsServiceAddressSet = false;
             this.BroadcastReceiveErrorCount = 0;
-
-            // this.UserNameHashCode = "NULL".GetHashCode();
         }
 
 
@@ -173,8 +175,8 @@ namespace ClientAPP_WPF
                 try
                 {
                     IPEndPoint IpEP = new IPEndPoint(this.ServiceIPAddress, this.ServicePort);
-                    this.PrivateSocket.Send(msgBytes, msgBytes.Length, IpEP);
-                    byte[] ret = this.PrivateSocket.Receive(ref IpEP);
+                    this.ProcessHandlerSocket.Send(msgBytes, msgBytes.Length, IpEP);
+                    byte[] ret = this.ProcessHandlerSocket.Receive(ref IpEP);
                     string retStr = Encoding.UTF8.GetString(ret);
                     retIndex = int.Parse(retStr);
                     if (retIndex != -1)
@@ -186,6 +188,7 @@ namespace ClientAPP_WPF
                 catch
                 {
                     succ = false;
+                    this.PlayerIndex = -1;
                 }      
             });
             if (!succ)
@@ -207,13 +210,70 @@ namespace ClientAPP_WPF
                 try
                 {
                     IPEndPoint IpEP = new IPEndPoint(this.ServiceIPAddress, this.ServicePort);
-                    this.PrivateSocket.Send(msgBytes, msgBytes.Length, IpEP);                    
+                    this.ProcessHandlerSocket.Send(msgBytes, msgBytes.Length, IpEP);                    
                 }
                 catch
                 {
 
                 }
             });
+        }
+
+        public async void PostPoint(int point)
+        {
+            if (!IsServiceAddressSet)
+            {
+                return;
+            }
+            byte[] msgBytes = new byte[40];
+            Array.Copy(this.UserNameHashCode, 0, msgBytes, 0, 32);
+            Array.Copy(BitConverter.GetBytes(4), 0, msgBytes, 32, 4);
+            Array.Copy(BitConverter.GetBytes(point), 0, msgBytes, 36, 4);
+
+            await Task.Run(() => {
+                try
+                {
+                    IPEndPoint IpEP = new IPEndPoint(this.ServiceIPAddress, this.ServicePort);
+                    this.ProcessHandlerSocket.Send(msgBytes, msgBytes.Length, IpEP);
+                }
+                catch
+                {
+
+                }
+            });
+        }
+
+        public async void InfoGetCards()
+        {
+            if (!IsServiceAddressSet)
+            {
+                return;
+            }
+            byte[] msgBytes = new byte[36];
+            Array.Copy(this.UserNameHashCode, 0, msgBytes, 0, 32);
+            Array.Copy(BitConverter.GetBytes(3), 0, msgBytes, 32, 4);
+            byte[] received = null;
+            await Task.Run(() => {
+                try
+                {
+                    IPEndPoint IpEP = new IPEndPoint(this.ServiceIPAddress, this.ServicePort);
+                    this.CardHandlerSocket.Send(msgBytes, msgBytes.Length, IpEP);
+                    received = this.CardHandlerSocket.Receive(ref IpEP);
+                }
+                catch
+                {
+                    received = null; 
+                }
+            });
+            if (received == null)
+            {
+
+            }
+            else
+            {
+                var pokers = PokerSerializer.Deserialize(received);
+                this.OnCardInformationGot(pokers);
+            }
         }
 
 
@@ -334,6 +394,11 @@ namespace ClientAPP_WPF
         protected void OnSceneReceived(Scene se)
         {
             this.SceneReceived?.Invoke(se);
+        }
+
+        protected void OnCardInformationGot(List<Poker> cards)
+        {
+            this.CardInformationGot?.Invoke(cards);
         }
 
         protected void OnDebugEvent(string s)

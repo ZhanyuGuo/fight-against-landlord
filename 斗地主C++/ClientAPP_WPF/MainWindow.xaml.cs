@@ -28,7 +28,7 @@ namespace ClientAPP_WPF
             this.IsNameSet = false;
 
             this.core = new ClientCore();
-            this.CardButtons = new List<Button> {
+            this.CardButtons = new List<Button>(){
                 this.PlayerCard1,
                 this.PlayerCard2,
                 this.PlayerCard3,
@@ -50,11 +50,19 @@ namespace ClientAPP_WPF
                 this.PlayerCard19,                
                 this.PlayerCard20,
             };
-
+            this.PointButtons = new List<Button>(){
+                this.Point0Button,
+                this.Point1Button,
+                this.Point2Button,
+                this.Point3Button,
+            };
             foreach(var cardButton in this.CardButtons)
             {
                 // cardButton.Visibility = Visibility.Hidden;
+                cardButton.IsEnabled = false;
             }
+            this.HideComponents();
+            
 
             this.UserNameButton.IsEnabled = false;
 #if DEBUG
@@ -69,7 +77,7 @@ namespace ClientAPP_WPF
             core.NoHearingFromServer += this.NoHearingFromServerHandler;
             core.JoinGameFailed += this.JoinGameFailHandler;
             core.SceneReceived += this.RenderCurrentScene;
-            
+            core.CardInformationGot += this.RenderSelfCards;
 
             core.Init();
 
@@ -83,6 +91,8 @@ namespace ClientAPP_WPF
         private bool IsNameSet;
         private bool IsServerOK;
         private List<Button> CardButtons;
+        private List<Button> PointButtons;
+        
         private byte[] UserNameHashCode { get => this.core.UserNameHashCode; set => this.core.UserNameHashCode = value; }
         private int PlayerIndex { get => this.core.PlayerIndex; set => this.core.PlayerIndex = value; }
         private int LastPlayerIndex { get => this.core.LastIndex; }
@@ -135,7 +145,7 @@ namespace ClientAPP_WPF
         private const sbyte ACTIVE_PARAM_2 = 2;
         private const sbyte ACTIVE_PARAM_3 = 3;
 
-        private void RenderCurrentScene(Scene se)
+        private unsafe void RenderCurrentScene(Scene se)
         {
             if (!this.core.IsPlayerIndexValid)
             {
@@ -147,39 +157,67 @@ namespace ClientAPP_WPF
                 case GAME_STAGE_PREPARING:
                     {
                         this.PrepareButton.Visibility = Visibility.Visible;
-                        this.Player1ReadyLabel.Visibility = Visibility.Visible;
-                        this.Player2ReadyLabel.Visibility = Visibility.Visible;
+                        foreach (Button pointButton in this.PointButtons)
+                        {
+                            pointButton.Visibility = Visibility.Hidden;
+                        }
                         if (this.IsPlayerPrepared(this.PlayerIndex))
                         {
                             this.PrepareButton.IsEnabled = false;
                             this.PrepareButton.Content = "已准备";
+                            this.SelfStatusLabel.Content = "已准备";
                         }
                         else
                         {
                             this.PrepareButton.IsEnabled = true;
                             this.PrepareButton.Content = "准备";
+                            this.SelfStatusLabel.Content = "未准备";
                         }
                         if (this.IsPlayerPrepared(this.LastPlayerIndex))
                         {
-                            this.Player1ReadyLabel.Content = "已准备";
+                            this.Player1StatusLabel.Content = "已准备";
                         }
                         else
                         {
-                            this.Player1ReadyLabel.Content = "未准备";
+                            this.Player1StatusLabel.Content = "未准备";
                         }
                         if (this.IsPlayerPrepared(this.SecondLastPlayerIndex))
                         {
-                            this.Player2ReadyLabel.Content = "已准备";
+                            this.Player2StatusLabel.Content = "已准备";
                         }
                         else
                         {
-                            this.Player2ReadyLabel.Content = "未准备";
+                            this.Player2StatusLabel.Content = "未准备";
                         }
                         break;
                     }
                 case GAME_STAGE_DETERMINE_LANDLORD:
                     {
-                        
+                        this.core.InfoGetCards();
+                        this.PrepareButton.Visibility = Visibility.Hidden;
+                        if (this.CurrentScene.ActiveIndex == this.PlayerIndex)
+                        {
+                            foreach (Button pointButton in this.PointButtons)
+                            {
+                                pointButton.Visibility = Visibility.Visible;
+                            }
+                            this.Point0Button.IsEnabled = true;
+                            int leastPoint = (int)this.CurrentScene.ActiveParam;
+                            for (int i = 1; i < this.PointButtons.Count; i++) 
+                            {
+                                this.PointButtons[i].IsEnabled = i >= leastPoint;
+                            }
+                        }
+                        else
+                        {
+                            foreach (Button pointButton in this.PointButtons)
+                            {
+                                pointButton.Visibility = Visibility.Hidden;
+                            }
+                        }
+                        this.Player1StatusLabel.Content = $"{this.CurrentScene.LandlordWillingness[this.LastPlayerIndex].ToString()}分";
+                        this.Player2StatusLabel.Content = $"{this.CurrentScene.LandlordWillingness[this.SecondLastPlayerIndex].ToString()}分";
+                        this.SelfStatusLabel.Content = $"{this.CurrentScene.LandlordWillingness[this.PlayerIndex].ToString()}分";
                         break;
                     }
                 case GAME_STAGE_MAINLOOP_ONGOING:
@@ -197,6 +235,36 @@ namespace ClientAPP_WPF
                     break;
             }
 
+        }
+
+        private void RenderSelfCards(List<Poker> cards)
+        {
+            int cardCount = cards.Count;
+            int totalPos = this.CardButtons.Count;
+            for (int i=0; i < totalPos; i++)
+            {
+                if (i < cardCount) 
+                {
+                    this.CardButtons[i].Content = cards[i].ToString();
+                    this.CardButtons[i].IsEnabled = true;
+                }
+                else 
+                {
+                    this.CardButtons[i].Content = "Card";
+                    this.CardButtons[i].IsEnabled = false;
+                }
+            }
+        }
+
+        private void HideComponents()
+        {
+            this.PrepareButton.Visibility = Visibility.Hidden;
+            foreach (Button pointButton in this.PointButtons)
+            {
+                pointButton.Visibility = Visibility.Hidden;
+            }
+            this.CardPostButton.Visibility = Visibility.Hidden;
+            this.CardPassButton.Visibility = Visibility.Hidden;
         }
 
         private void NoHearingFromServerHandler()
@@ -231,7 +299,7 @@ namespace ClientAPP_WPF
 
         private void JoinGameFailHandler()
         {
-            MessageBox.Show("加入游戏失败，可能是服务器未响应、或者游戏已经满员。", "加入失败");
+            MessageBox.Show("加入游戏失败，可能是服务器未响应、或者游戏已经满员。你或许仍可以尝试继续游戏。", "尝试加入失败");
         }
 
         private void WriteToDebugTextBox(string str)
@@ -246,12 +314,6 @@ namespace ClientAPP_WPF
             return readyFlag != 0;
         }
 
-
-        private void JoinServerButton_Click(object sender, RoutedEventArgs e)
-        {
-            //System.Diagnostics.Process.Start("explorer.exe", @"https://gitee.com/iLanceHe");
-        }
-
         private void PrepareButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.core.IsPlayerIndexValid)
@@ -262,6 +324,46 @@ namespace ClientAPP_WPF
             }
 
             //this.core;
+        }
+
+        private void Point1Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.core.PostPoint(1);
+            foreach (Button pointButton in this.PointButtons)
+            {
+                pointButton.IsEnabled = false;
+            }
+            this.SelfStatusLabel.Content = "提交叫分中";
+        }
+
+        private void Point2Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.core.PostPoint(2);
+            foreach (Button pointButton in this.PointButtons)
+            {
+                pointButton.IsEnabled = false;
+            }
+            this.SelfStatusLabel.Content = "提交叫分中";
+        }
+
+        private void Point3Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.core.PostPoint(3);
+            foreach (Button pointButton in this.PointButtons)
+            {
+                pointButton.IsEnabled = false;
+            }
+            this.SelfStatusLabel.Content = "提交叫分中";
+        }
+
+        private void Point0Button_Click(object sender, RoutedEventArgs e)
+        {
+            this.core.PostPoint(0);
+            foreach (Button pointButton in this.PointButtons)
+            {
+                pointButton.IsEnabled = false;
+            }
+            this.SelfStatusLabel.Content = "提交叫分中";
         }
 
         private void EasterEgg()

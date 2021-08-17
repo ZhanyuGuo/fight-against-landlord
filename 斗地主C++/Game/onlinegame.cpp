@@ -38,7 +38,7 @@ namespace PokerGame
 			std::string parseErr;
 			configSS << fileIn.rdbuf();
 			configJsonStr = configSS.str();
-
+			
 			reader->parse(configJsonStr.c_str(), configJsonStr.c_str() + configJsonStr.length(), &config, &parseErr);
 
 			this->multicastPort = config["MulticastPort"].asInt();
@@ -307,7 +307,7 @@ namespace PokerGame
 					int willingness = 0;
 					if (bufByteLeft >= 4)
 					{
-						willingness = pIntBuf[2];
+						willingness = pIntBuf[1];
 					}
 					this->HandlePlayerDeterminLandlord(playerIndex, willingness);
 					break;
@@ -392,15 +392,18 @@ namespace PokerGame
 					if (willingNess >= leastPoint)
 					{
 						this->landlordWillingness[playerIndex] = willingNess;
+						std::cout << "玩家索引"s << playerIndex << "叫了"s << willingNess << "分"s << std::endl;
 					}
 					else
 					{
 						this->landlordWillingness[playerIndex] = 0;
+						std::cout << "玩家索引"s << playerIndex << "不叫分"s << std::endl;
 					}
 					if (willingNess == 3)
 					{
 						// 叫3分即直接获得地主
 						this->SetLandlord(playerIndex);
+						std::cout << "玩家索引"s << playerIndex << "以3分获得地主"s << std::endl;
 						this->nextActPlayerIndex = this->landlordIndex;
 						this->nextActParam = ACTIVE_TYPE_ACTIVE;
 						this->gameStage = STAGE_MAINLOOP_ONGOING;
@@ -415,6 +418,7 @@ namespace PokerGame
 							if (*maxWill == '\0')
 							{
 								// 无人叫分，重新发牌
+								std::cout << "无人叫地主，重新发牌"s << std::endl;
 								this->PlayerCardsReset();
 								this->HandoutInitialCards();
 								this->startIndex = this->rng() % 3;
@@ -426,6 +430,7 @@ namespace PokerGame
 								// 有人叫分，最大者获得地主
 								auto maxWillIndexL = std::distance(std::begin(this->landlordWillingness), maxWill);
 								int maxWillIndex = static_cast<int>(maxWillIndexL);
+								std::cout << "玩家索引"s << maxWillIndexL << "成为了地主"s << std::endl;
 								this->SetLandlord(maxWillIndex);
 								this->nextActPlayerIndex = this->landlordIndex;
 								this->nextActParam = ACTIVE_TYPE_ACTIVE;
@@ -439,6 +444,7 @@ namespace PokerGame
 							char natualIncreasedLeastPoint = this->nextActParam + 1;
 							char willBasedLeastPoint = *maxWill + 1;
 							this->nextActParam = max(natualIncreasedLeastPoint, willBasedLeastPoint);
+							this->nextActParam = min((char)3, this->nextActParam);
 						}
 					}
 				}

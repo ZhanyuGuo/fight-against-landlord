@@ -34,17 +34,22 @@
         <TextBox x:Name="DebugTextBox" HorizontalAlignment="Left" Margin="280,12,0,0" Text="调试用文本框，啥都往这写" TextWrapping="Wrap" VerticalAlignment="Top" Width="436" Height="47"/>
         <ProgressBar x:Name="FindingServerBar"  HorizontalAlignment="Left" Height="10" Margin="140,12,0,0" VerticalAlignment="Top" Width="110" LargeChange="1" IsIndeterminate="True" Visibility="Hidden"/>
         <Label x:Name="ServerStateLabel" Content="欢迎使用" HorizontalAlignment="Left" Margin="16,5,0,0" VerticalAlignment="Top"/>
-        <Rectangle HorizontalAlignment="Left" Height="296" Margin="172,239,0,0" Stroke="Black" VerticalAlignment="Top" Width="749" Fill="#4C000000"/>
+        <Rectangle x:Name="MaskRectangle" HorizontalAlignment="Left" Height="296" Margin="28,208,0,0" Stroke="Black" VerticalAlignment="Top" Width="748" Fill="#4C000000" Visibility="Hidden"/>
         <Label x:Name="Player1Label" Content="玩家" HorizontalAlignment="Left" Margin="28,102,0,0" VerticalAlignment="Top"/>
         <Label x:Name="Player2Label" Content="玩家" HorizontalAlignment="Left" Margin="741,107,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="Player1CardCountLabel" Content="剩余牌数：" HorizontalAlignment="Left" Margin="38,158,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="Player2CardCountLabel" Content="剩余牌数：" HorizontalAlignment="Left" Margin="684,158,0,0" VerticalAlignment="Top"/>
         <Button x:Name="LordCard1" Content="Card" HorizontalAlignment="Left" Margin="300,76,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
         <Button x:Name="LordCard2" Content="Card" HorizontalAlignment="Left" Margin="364,76,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
         <Button x:Name="LordCard3" Content="Card" HorizontalAlignment="Left" Margin="428,76,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PrepareButton" Content="准备" HorizontalAlignment="Left" Margin="280,220,0,0" VerticalAlignment="Top" Click="PrepareButton_Click"/>
-        <Label x:Name="Player1ReadyLabel" Content="未准备1" HorizontalAlignment="Left" Margin="38,132,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="Player2ReadyLabel" Content="未准备2" HorizontalAlignment="Left" Margin="708,133,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="PrepareButton" Content="准备" HorizontalAlignment="Left" Margin="364,218,0,0" VerticalAlignment="Top" Click="PrepareButton_Click" Height="21" Width="46"/>
+        <Label x:Name="Player1StatusLabel" Content="未准备1" HorizontalAlignment="Left" Margin="38,132,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="Player2StatusLabel" Content="未准备2" HorizontalAlignment="Left" Margin="708,133,0,0" VerticalAlignment="Top"/>
+        <Button x:Name="Point1Button" Content="1分" HorizontalAlignment="Left" Margin="275,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point1Button_Click"/>
+        <Button x:Name="Point2Button" Content="2分" HorizontalAlignment="Left" Margin="339,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point2Button_Click"/>
+        <Button x:Name="Point3Button" Content="3分" HorizontalAlignment="Left" Margin="403,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point3Button_Click"/>
+        <Button x:Name="Point0Button" Content="不叫" HorizontalAlignment="Left" Margin="467,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point0Button_Click"/>
+        <Button x:Name="CardPostButton" Content="出牌" HorizontalAlignment="Left" Margin="172,0,0,0" VerticalAlignment="Center" Height="24" Width="46"/>
+        <Button x:Name="CardPassButton" Content="跳过" HorizontalAlignment="Left" Margin="109,0,0,0" VerticalAlignment="Center" Height="24" Width="46"/>
+        <Label x:Name="SelfStatusLabel" Content="未准备" HorizontalAlignment="Left" Margin="564,0,0,0" VerticalAlignment="Center"/>
 
     </Grid>
 </Window>
