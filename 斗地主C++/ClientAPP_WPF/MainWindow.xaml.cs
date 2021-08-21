@@ -56,10 +56,16 @@ namespace ClientAPP_WPF
                 this.Point2Button,
                 this.Point3Button,
             };
+            this.CardSelectedFlag = new bool[this.CardButtons.Count];
+            for (int i = 0; i < this.CardSelectedFlag.Length; i++) 
+            {
+                this.CardSelectedFlag[i] = false;
+            }
             foreach(var cardButton in this.CardButtons)
             {
                 // cardButton.Visibility = Visibility.Hidden;
                 cardButton.IsEnabled = false;
+                cardButton.Background = Brushes.LightGray;
             }
             this.HideComponents();
             
@@ -69,7 +75,7 @@ namespace ClientAPP_WPF
             core.DebugEvent += this.WriteToDebugTextBox;
             core.ServerNotFound += () => { this.WriteToDebugTextBox("ServerNotFound"); };
             core.ServerFound += () => { this.WriteToDebugTextBox("ServerFound"); };
-            core.SceneReceived += (Scene se) => { this.WriteToDebugTextBox(se.ParseIPAdress().ToString()); };
+            //core.SceneReceived += (Scene se) => { this.WriteToDebugTextBox(se.ParseIPAdress().ToString()); };
 #endif
 
             core.ServerFound += this.ServerFoundHandler;
@@ -189,6 +195,9 @@ namespace ClientAPP_WPF
                         {
                             this.Player2StatusLabel.Content = "未准备";
                         }
+                        this.EreaseLordCars();
+                        this.CardPostButton.Visibility = Visibility.Hidden;
+                        this.CardPassButton.Visibility = Visibility.Hidden;
                         break;
                     }
                 case GAME_STAGE_DETERMINE_LANDLORD:
@@ -215,6 +224,9 @@ namespace ClientAPP_WPF
                                 pointButton.Visibility = Visibility.Hidden;
                             }
                         }
+                        this.EreaseLordCars();
+                        this.CardPostButton.Visibility = Visibility.Hidden;
+                        this.CardPassButton.Visibility = Visibility.Hidden;
                         this.Player1StatusLabel.Content = $"{this.CurrentScene.LandlordWillingness[this.LastPlayerIndex].ToString()}分";
                         this.Player2StatusLabel.Content = $"{this.CurrentScene.LandlordWillingness[this.SecondLastPlayerIndex].ToString()}分";
                         this.SelfStatusLabel.Content = $"{this.CurrentScene.LandlordWillingness[this.PlayerIndex].ToString()}分";
@@ -222,12 +234,125 @@ namespace ClientAPP_WPF
                     }
                 case GAME_STAGE_MAINLOOP_ONGOING:
                     {
-                        
+                        this.core.InfoGetCards();
+                        foreach (Button pointButton in this.PointButtons)
+                        {
+                            pointButton.Visibility = Visibility.Hidden;
+                        }
+                        int activeIndex = (int)this.CurrentScene.ActiveIndex;  
+                        List<Poker> lordCards = PokerSerializer.Deserialize(this.CurrentScene.GetLordCards());
+                        this.RenderLordCards(lordCards);
+                        if (activeIndex == this.PlayerIndex)
+                        {
+                            this.CardPostButton.Visibility = Visibility.Visible;
+                            this.CardPassButton.Visibility = Visibility.Visible;
+                        }
+                        else
+                        {
+                            // this.SelfStatusLabel.Content = "等待其他玩家出牌";
+                            this.CardPostButton.Visibility = Visibility.Hidden;
+                            this.CardPassButton.Visibility = Visibility.Hidden;
+                        }
+                        if (this.CurrentScene.LastActiveIndex == this.LastPlayerIndex)
+                        {
+                            if (this.CurrentScene.LastActType == ACTIVE_TYPE_PASS)
+                            {
+                                this.Player1ActionContentLabel.Content = "跳过";
+                            }
+                            else
+                            {
+                                List<Poker> lastCards = PokerSerializer.Deserialize(this.CurrentScene.GetLastAct());
+                                this.Player1ActionContentLabel.Content = PokerSerializer.DecodePokersToString(lastCards);
+                            }
+                            if (this.CurrentScene.SecondLastActType == ACTIVE_TYPE_PASS)
+                            {
+                                this.Player2ActionContentLabel.Content = "跳过";
+                            }
+                            else
+                            {
+                                List<Poker> secondLastCards = PokerSerializer.Deserialize(this.CurrentScene.GetSecondLastAct());
+                                this.Player2ActionContentLabel.Content = PokerSerializer.DecodePokersToString(secondLastCards);
+                            }
+                            this.SelfStatusLabel.Content = "轮到自己出牌";
+                        }
+                        else if(this.CurrentScene.LastActiveIndex == this.SecondLastPlayerIndex)
+                        {
+                            if (this.CurrentScene.LastActType == ACTIVE_TYPE_PASS)
+                            {
+                                this.Player2ActionContentLabel.Content = "跳过";
+                            }
+                            else
+                            {
+                                List<Poker> lastCards = PokerSerializer.Deserialize(this.CurrentScene.GetLastAct());
+                                this.Player2ActionContentLabel.Content = PokerSerializer.DecodePokersToString(lastCards);
+                            }
+                            if (this.CurrentScene.SecondLastActType == ACTIVE_TYPE_PASS)
+                            {
+                                this.SelfStatusLabel.Content = "跳过";
+                            }
+                            else
+                            {
+                                List<Poker> secondLastCards = PokerSerializer.Deserialize(this.CurrentScene.GetSecondLastAct());
+                                this.SelfStatusLabel.Content = PokerSerializer.DecodePokersToString(secondLastCards, 10);
+                            }
+                            this.Player1ActionContentLabel.Content = "出牌中";
+                        }
+                        else if(this.CurrentScene.LastActiveIndex == this.PlayerIndex)
+                        {
+                            if (this.CurrentScene.LastActType == ACTIVE_TYPE_PASS)
+                            {
+                                this.SelfStatusLabel.Content = "已跳过";
+                            }
+                            else
+                            {
+                                List<Poker> lastCards = PokerSerializer.Deserialize(this.CurrentScene.GetLastAct());
+                                this.SelfStatusLabel.Content = PokerSerializer.DecodePokersToString(lastCards, 10);
+                                // this.SelfStatusLabel.Content = "已出牌";
+                            }
+                            if (this.CurrentScene.SecondLastActType == ACTIVE_TYPE_PASS)
+                            {
+                                this.Player1ActionContentLabel.Content = "跳过";
+                            }
+                            else
+                            {
+                                List<Poker> secondLastCards = PokerSerializer.Deserialize(this.CurrentScene.GetSecondLastAct());
+                                this.Player1ActionContentLabel.Content = PokerSerializer.DecodePokersToString(secondLastCards);
+                            }
+                            this.Player2ActionContentLabel.Content = "出牌中";
+                        }
+                        this.Player1StatusLabel.Content = $"剩余牌数:{this.CurrentScene.CardLeftCount[this.LastPlayerIndex]}";
+                        this.Player2StatusLabel.Content = $"剩余牌数:{this.CurrentScene.CardLeftCount[this.SecondLastPlayerIndex]}";
                         break;
                     }
                 case GAME_STAGE_END:
                     {
-
+                        this.CardPostButton.Visibility = Visibility.Hidden;
+                        this.CardPassButton.Visibility = Visibility.Hidden;
+                        int winnerFlag = (int)this.CurrentScene.WinnerFlag;
+                        if ((winnerFlag & (1 << this.PlayerIndex)) != 0) 
+                        {
+                            this.SelfStatusLabel.Content = "Victory";
+                        }
+                        else
+                        {
+                            this.SelfStatusLabel.Content = "Defeat";
+                        }
+                        if ((winnerFlag & (1 << this.SecondLastPlayerIndex)) != 0)
+                        {
+                            this.Player1StatusLabel.Content = "Victory";
+                        }
+                        else
+                        {
+                            this.Player1StatusLabel.Content = "Defeat";
+                        }
+                        if ((winnerFlag & (1 << this.LastPlayerIndex)) != 0)
+                        {
+                            this.Player2StatusLabel.Content = "Victory";
+                        }
+                        else
+                        {
+                            this.Player2StatusLabel.Content = "Defeat";
+                        }
                         break;
                     }
                 default:
@@ -241,7 +366,7 @@ namespace ClientAPP_WPF
         {
             int cardCount = cards.Count;
             int totalPos = this.CardButtons.Count;
-            for (int i=0; i < totalPos; i++)
+            for (int i = 0; i < totalPos; i++) 
             {
                 if (i < cardCount) 
                 {
@@ -254,6 +379,19 @@ namespace ClientAPP_WPF
                     this.CardButtons[i].IsEnabled = false;
                 }
             }
+        }
+
+        private void RenderLordCards(List<Poker> pokers)
+        {
+            this.LordCard1.Content = pokers[0].ToString();
+            this.LordCard2.Content = pokers[1].ToString();
+            this.LordCard3.Content = pokers[2].ToString();
+        }
+        private void EreaseLordCars()
+        {
+            this.LordCard1.Content = "Cards";
+            this.LordCard2.Content = "Cards";
+            this.LordCard3.Content = "Cards";
         }
 
         private void HideComponents()
@@ -364,6 +502,78 @@ namespace ClientAPP_WPF
                 pointButton.IsEnabled = false;
             }
             this.SelfStatusLabel.Content = "提交叫分中";
+        }
+
+        private bool[] CardSelectedFlag;
+        private void PlayerCard_Click(object sender, RoutedEventArgs e)
+        {
+            int count = this.CardButtons.Count;
+            for (int i = 0; i < count; i++)
+            {
+                if (e.Source == this.CardButtons[i])
+                {
+                    if (!this.CardSelectedFlag[i])
+                    {
+                        this.CardButtons[i].Background = Brushes.AliceBlue;
+                        this.CardSelectedFlag[i] = true;
+                    }
+                    else
+                    {
+                        this.CardButtons[i].Background = Brushes.LightGray;
+                        this.CardSelectedFlag[i] = false;
+                    }
+
+                }
+            }
+        }
+
+        private int SelectedCardCount { get
+            {
+                int c = 0;
+                foreach(bool isCardSelected in this.CardSelectedFlag)
+                {
+                    if (isCardSelected) { c++; }
+                }
+                return c;
+            } }
+
+        private void CardPassButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.ResetCardSelectStatus();
+            this.core.PostCardAction(null);
+        }
+
+        private void CardPostButton_Click(object sender, RoutedEventArgs e)
+        {
+            int selectedCount = this.SelectedCardCount;
+            if(selectedCount == 0)
+            {
+                return;
+            }
+            byte[] cardIndexes = new byte[selectedCount];
+            int c = 0;
+            for (int cardIndex = 0; cardIndex < 20; cardIndex++) 
+            {
+                if(this.CardSelectedFlag[cardIndex])
+                {
+                    cardIndexes[c] = (byte)cardIndex;
+                    c++;
+                }
+            }
+            this.core.PostCardAction(cardIndexes);
+            this.ResetCardSelectStatus();
+        }
+
+        private void ResetCardSelectStatus()
+        {
+            foreach (Button cardButton in this.CardButtons)
+            {
+                cardButton.Background = Brushes.LightGray;
+            }
+            for (int i = 0; i < 20; i++) 
+            {
+                this.CardSelectedFlag[i] = false;
+            }
         }
 
         private void EasterEgg()

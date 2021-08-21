@@ -21,7 +21,6 @@ namespace ClientAPP_WPF
                 if (this.ID == 53 || this.ID == 54) { return PokerColor.Joker; }
                 return (PokerColor)((this.ID - 1) / 13);
             } }
-         
         public override string ToString()
         {
             if (this.ID == 53)
@@ -39,7 +38,6 @@ namespace ClientAPP_WPF
             }
             
         }
-
         public Poker(int ID)
         {
             this.ID = ID;
@@ -75,9 +73,6 @@ namespace ClientAPP_WPF
                     return "K";
                 default:
                     return this.Point.ToString();
-
-
-
             }
 
         }
@@ -122,6 +117,25 @@ namespace ClientAPP_WPF
                 pokers.Add(new Poker(id));
             }
             return pokers;
+        }
+        public static string DecodePokersToString(IEnumerable<Poker> pokers)
+        {
+            return PokerSerializer.DecodePokersToString(pokers, 3);
+        }
+        public static string DecodePokersToString(IEnumerable<Poker> pokers, int colCapicity)
+        {
+            StringBuilder sb = new StringBuilder();
+            int i = 0;
+            foreach (var poker in pokers)
+            {
+                sb.Append(poker.ToString());
+                i++;
+                if (i % 3 == 0) 
+                {
+                    sb.Append("\n");
+                }
+            }
+            return sb.ToString();
         }
     }
 }

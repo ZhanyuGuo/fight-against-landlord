@@ -11,26 +11,26 @@
         <Label x:Name="UserNameLabel" Content="用户名" HorizontalAlignment="Left" Margin="16,47,0,0" VerticalAlignment="Top" Height="25" Width="46"/>
         <Label x:Name="ServerIPLabel" Content="" HorizontalAlignment="Left" Margin="10,49,0,0" VerticalAlignment="Top" Height="25" Width="58"/>
         <Button x:Name="UserNameButton" Content="登录" HorizontalAlignment="Left" Margin="222,53,0,0" VerticalAlignment="Top" Click="UserNameButton_Click" Height="19" Width="28"/>
-        <Button x:Name="PlayerCard1" Content="Card" HorizontalAlignment="Left" Margin="76,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard2" Content="Card" HorizontalAlignment="Left" Margin="140,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard3" Content="Card" HorizontalAlignment="Left" Margin="204,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard4" Content="Card" HorizontalAlignment="Left" Margin="268,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard5" Content="Card" HorizontalAlignment="Left" Margin="332,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard6" Content="Card" HorizontalAlignment="Left" Margin="396,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard7" Content="Card" HorizontalAlignment="Left" Margin="460,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard8" Content="Card" HorizontalAlignment="Left" Margin="524,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard9" Content="Card" HorizontalAlignment="Left" Margin="588,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard10" Content="Card" HorizontalAlignment="Left" Margin="652,296,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard11" Content="Card" HorizontalAlignment="Left" Margin="76,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard12" Content="Card" HorizontalAlignment="Left" Margin="140,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard13" Content="Card" HorizontalAlignment="Left" Margin="204,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard14" Content="Card" HorizontalAlignment="Left" Margin="268,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard15" Content="Card" HorizontalAlignment="Left" Margin="332,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard16" Content="Card" HorizontalAlignment="Left" Margin="396,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard17" Content="Card" HorizontalAlignment="Left" Margin="460,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard18" Content="Card" HorizontalAlignment="Left" Margin="524,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard19" Content="Card" HorizontalAlignment="Left" Margin="588,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
-        <Button x:Name="PlayerCard20" Content="Card" HorizontalAlignment="Left" Margin="652,383,0,0" VerticalAlignment="Top" Height="87" Width="64"/>
+        <Button x:Name="PlayerCard1" Content="Card" HorizontalAlignment="Left" Margin="76,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard2" Content="Card" HorizontalAlignment="Left" Margin="140,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard3" Content="Card" HorizontalAlignment="Left" Margin="204,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard4" Content="Card" HorizontalAlignment="Left" Margin="268,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard5" Content="Card" HorizontalAlignment="Left" Margin="332,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard6" Content="Card" HorizontalAlignment="Left" Margin="396,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard7" Content="Card" HorizontalAlignment="Left" Margin="460,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard8" Content="Card" HorizontalAlignment="Left" Margin="524,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard9" Content="Card" HorizontalAlignment="Left" Margin="588,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard10" Content="Card" HorizontalAlignment="Left" Margin="652,296,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard11" Content="Card" HorizontalAlignment="Left" Margin="76,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard12" Content="Card" HorizontalAlignment="Left" Margin="140,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard13" Content="Card" HorizontalAlignment="Left" Margin="204,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard14" Content="Card" HorizontalAlignment="Left" Margin="268,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard15" Content="Card" HorizontalAlignment="Left" Margin="332,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard16" Content="Card" HorizontalAlignment="Left" Margin="396,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard17" Content="Card" HorizontalAlignment="Left" Margin="460,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard18" Content="Card" HorizontalAlignment="Left" Margin="524,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard19" Content="Card" HorizontalAlignment="Left" Margin="588,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
+        <Button x:Name="PlayerCard20" Content="Card" HorizontalAlignment="Left" Margin="652,383,0,0" VerticalAlignment="Top" Height="87" Width="64" Click="PlayerCard_Click"/>
         <TextBox x:Name="DebugTextBox" HorizontalAlignment="Left" Margin="280,12,0,0" Text="调试用文本框，啥都往这写" TextWrapping="Wrap" VerticalAlignment="Top" Width="436" Height="47"/>
         <ProgressBar x:Name="FindingServerBar"  HorizontalAlignment="Left" Height="10" Margin="140,12,0,0" VerticalAlignment="Top" Width="110" LargeChange="1" IsIndeterminate="True" Visibility="Hidden"/>
         <Label x:Name="ServerStateLabel" Content="欢迎使用" HorizontalAlignment="Left" Margin="16,5,0,0" VerticalAlignment="Top"/>
@@ -47,9 +47,11 @@
         <Button x:Name="Point2Button" Content="2分" HorizontalAlignment="Left" Margin="339,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point2Button_Click"/>
         <Button x:Name="Point3Button" Content="3分" HorizontalAlignment="Left" Margin="403,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point3Button_Click"/>
         <Button x:Name="Point0Button" Content="不叫" HorizontalAlignment="Left" Margin="467,0,0,0" VerticalAlignment="Center" Height="24" Width="50" Click="Point0Button_Click"/>
-        <Button x:Name="CardPostButton" Content="出牌" HorizontalAlignment="Left" Margin="172,0,0,0" VerticalAlignment="Center" Height="24" Width="46"/>
-        <Button x:Name="CardPassButton" Content="跳过" HorizontalAlignment="Left" Margin="109,0,0,0" VerticalAlignment="Center" Height="24" Width="46"/>
+        <Button x:Name="CardPostButton" Content="出牌" HorizontalAlignment="Left" Margin="172,0,0,0" VerticalAlignment="Center" Height="24" Width="46" Click="CardPostButton_Click"/>
+        <Button x:Name="CardPassButton" Content="跳过" HorizontalAlignment="Left" Margin="109,0,0,0" VerticalAlignment="Center" Height="24" Width="46" Click="CardPassButton_Click"/>
         <Label x:Name="SelfStatusLabel" Content="未准备" HorizontalAlignment="Left" Margin="564,0,0,0" VerticalAlignment="Center"/>
+        <Label x:Name="Player1ActionContentLabel" Content="Label" HorizontalAlignment="Left" Height="115" Margin="109,102,0,0" VerticalAlignment="Top" Width="141"/>
+        <Label x:Name="Player2ActionContentLabel" Content="Label" HorizontalAlignment="Left" Height="115" Margin="550,97,0,0" VerticalAlignment="Top" Width="140"/>
 
     </Grid>
 </Window>

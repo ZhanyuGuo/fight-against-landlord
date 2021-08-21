@@ -903,35 +903,35 @@ namespace PokerGame
 #pragma endregion
 
 #pragma region 造型尝试（暂定）
-		TypedCardCollection& TypedCardCollection::TryCast(PokerCardCollection& collection)
+		TypedCardCollection* TypedCardCollection::TryCast(PokerCardCollection& collection)
 		{
 			TypedCardCollection* typedCol = nullptr;
-			try { typedCol = new DanZhangCollection(collection); return *typedCol; }
+			try { typedCol = new DanZhangCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new DuiZiColleciton(collection); return *typedCol; }
+			try { typedCol = new DuiZiColleciton(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new SanZhangCollection(collection); return *typedCol; }
+			try { typedCol = new SanZhangCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new ShunZiCollection(collection); return *typedCol; }
+			try { typedCol = new ShunZiCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new LianDuiCollection(collection); return *typedCol; }
+			try { typedCol = new LianDuiCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new FeiJiCollection(collection); return *typedCol; }
+			try { typedCol = new FeiJiCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new ZhaDanCollection(collection); return *typedCol; }
+			try { typedCol = new ZhaDanCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new WangZhaCollection(collection); return *typedCol; }
+			try { typedCol = new WangZhaCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
 			throw InvalidTypeException();
 		}
 
-		TypedCardCollection& TypedCardCollection::TryCastZhaDanOnly(PokerCardCollection& collection)
+		TypedCardCollection* TypedCardCollection::TryCastZhaDanOnly(PokerCardCollection& collection)
 		{
 			TypedCardCollection* typedCol = nullptr;
 
-			try { typedCol = new ZhaDanCollection(collection); return *typedCol; }
+			try { typedCol = new ZhaDanCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
-			try { typedCol = new WangZhaCollection(collection); return *typedCol; }
+			try { typedCol = new WangZhaCollection(collection); return typedCol; }
 			catch (NotSameTypeException) { typedCol = nullptr; }
 
 			throw InvalidTypeException();

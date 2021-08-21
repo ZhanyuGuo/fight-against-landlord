@@ -140,6 +140,7 @@ namespace PokerGame
 			this->playerReadyFlag = 0b000;// 这里可能不需要重新准备
 			this->lastAct.reset(new IdBasedCardCollection());
 			this->secondLastAct.reset(new IdBasedCardCollection());
+			this->passCount = 0;
 			this->PlayerCardsReset();
 		}
 
@@ -221,9 +222,11 @@ namespace PokerGame
 					default:
 						delete[] buffer;
 						buffer = nullptr;
-						std::cout << "service thread dead:" << err;
-						return;
+						// std::cout << "service thread dead:" << err;
+						// return;
+						std::cout << "service thread error occurred:" << err;
 					}
+					continue;
 				}
 				// HandleMessage函数负责回收本次申请的内存
 				auto msgProcessThread = std::thread(&OnlineServer::HandleMessage, this, buffer, rcvdLen, clientIP);
@@ -455,7 +458,7 @@ namespace PokerGame
 			}
 			else
 			{
-
+				// 理论上客户端不会在非叫地主阶段提交叫分
 			}
 			this->handleDetermineLandlordMutex.unlock();
 		}
@@ -465,8 +468,182 @@ namespace PokerGame
 		// 此函数需要向客户端写回, 以在第一时间指示出牌是否成功 (虽然客户端也可以从组播的Scene判断, 但对于出牌来说延迟不应太大)
 		void OnlineServer::HandlePlayerCardAct(int playerIndex, char* cardAct, int len)
 		{
+			constexpr int CARD_ACTION_SUCCESS = 1;
+			constexpr int NOT_YOUR_TURN = -1;
+			constexpr int NOT_PASSABLE = -2;
+			constexpr int NOT_VALID_TYPE = -3;
+			constexpr int NOT_SAME_TYPE = -4;
+			constexpr int NOT_LARGER_THAN = -5;
+			constexpr int UNKNOWN_EXCEPTION = -6;
 			this->handleCardMutex.lock();
+			if (this->gameStage == STAGE_MAINLOOP_ONGOING)
+			{
+				if (playerIndex == this->nextActPlayerIndex)
+				{
+					if (cardAct == nullptr || len == 0)
+					{
+						if (this->nextActParam == ACTIVE_TYPE_FOLLOW)
+						{
+							// 可以跳过
+							this->MoveActiveIndexToNext();
+							this->passCount++;
+							if (this->passCount == 2)
+							{
+								this->nextActParam = ACTIVE_TYPE_ACTIVE;
+								this->passCount = 0;
+							}
+							else
+							{
+								this->nextActParam = ACTIVE_TYPE_FOLLOW;
+							}
+							this->secondLastActType = this->lastActType;
+							this->lastActType = ACTIVE_TYPE_PASS;
+							this->secondLastAct = this->lastAct;
+							this->lastAct.reset(new IdBasedCardCollection());
+							std::string passSucc = std::to_string(CARD_ACTION_SUCCESS);
+							this->WriteBack(this->playerIDs[playerIndex].ip, passSucc);
+						}
+						else
+						{
+							// 不允许跳过
+							std::string passFail = std::to_string(NOT_PASSABLE);
+							this->WriteBack(this->playerIDs[playerIndex].ip, passFail);
+						}				
+					}
+					else
+					{
+						int processCode = 0;
+						try
+						{
+							IdBasedCardCollection rawCollection;
+							for (int i = 0; i < len; i++)
+							{
+								rawCollection << (*this->playerCards[playerIndex])[static_cast<int>(cardAct[i])];
+							}
+							switch (this->nextActParam)
+							{
+							case ACTIVE_TYPE_ACTIVE:
+							{
+								// 这个指针是TryCast里new出来的，如果不被使用则需要删除
+								TypedCardCollection* collection = TypedCardCollection::TryCast(rawCollection);
+								if (collection != nullptr)
+								{
+									this->playerCards[playerIndex]->PickOut(*collection);
+									this->MoveActiveIndexToNext();
+									this->nextActParam = ACTIVE_TYPE_FOLLOW;
+									this->secondLastActType = this->lastActType;
+									this->lastActType = ACTIVE_TYPE_ACTIVE;
+									this->secondLastAct = this->lastAct;
+									this->lastAct.reset(collection);
+									this->passCount = 0;
+									std::string actSucc = std::to_string(CARD_ACTION_SUCCESS);
+									this->WriteBack(this->playerIDs[playerIndex].ip, actSucc);
+								}
+								else
+								{
+									processCode = UNKNOWN_EXCEPTION;
+									delete collection;
+								}
+								break;
+							}
+							case ACTIVE_TYPE_FOLLOW:
+							{
+								// 这个指针是从unique_ptr里拿出的裸指针，不要删除
+								TypedCardCollection* lastTypedCollection = nullptr;
+								if (this->lastActType != ACTIVE_TYPE_PASS)
+								{
+									lastTypedCollection = dynamic_cast<TypedCardCollection*>(this->lastAct.get());
+								}
+								else
+								{
+									lastTypedCollection = dynamic_cast<TypedCardCollection*>(this->secondLastAct.get());
+								}
+								std::shared_ptr<TypedCardCollection> typedColletion;
+								try
+								{
+									typedColletion = lastTypedCollection->FormatCollection(rawCollection);
+									
+								}
+								catch (NotSameTypeException&)
+								{
+									try
+									{
+										typedColletion.reset(TypedCardCollection::TryCastZhaDanOnly(rawCollection));
+									}
+									catch (InvalidTypeException&)
+									{
+										throw NotSameTypeException();
+									}
+								}
+								if (!typedColletion->IsLargerThan(*lastTypedCollection))
+								{
+									processCode = NOT_LARGER_THAN;
+								}
+								else
+								{
+									this->playerCards[playerIndex]->PickOut(*typedColletion);
+									this->MoveActiveIndexToNext();
+									this->nextActParam = ACTIVE_TYPE_FOLLOW;
+									this->secondLastActType = this->lastActType;
+									this->lastActType = ACTIVE_TYPE_FOLLOW;
+									this->secondLastAct = this->lastAct;
+									this->lastAct = typedColletion;
+									this->passCount = 0;
+									std::string actSucc = std::to_string(CARD_ACTION_SUCCESS);
+									this->WriteBack(this->playerIDs[playerIndex].ip, actSucc);
+								}
+								break;
+							}
+							case ACTIVE_TYPE_PASS:
+							{
+								// 理论上不会出现
+								processCode = UNKNOWN_EXCEPTION;
+								break;
+							}
+							default:
+								processCode = UNKNOWN_EXCEPTION;
+								break;
+							}
 
+						}
+						catch (NotSameTypeException&)
+						{
+							processCode = NOT_SAME_TYPE;
+						}
+						catch (InvalidTypeException&)
+						{
+							processCode = NOT_VALID_TYPE;
+						}
+						catch (std::bad_cast&)
+						{
+							// 理论上不应该出现
+							processCode = UNKNOWN_EXCEPTION;
+						}
+						catch (std::exception&)
+						{
+							processCode = UNKNOWN_EXCEPTION;
+						}
+						if (processCode < 0)
+						{
+							std::string actFail = std::to_string(processCode);
+							this->WriteBack(this->playerIDs[playerIndex].ip, actFail);
+						}
+						else
+						{
+							this->CheckIfWin(playerIndex);
+						}
+					}
+				}
+				else
+				{
+					std::string notYourTurn = std::to_string(NOT_YOUR_TURN);
+					this->WriteBack(this->playerIDs[playerIndex].ip, notYourTurn);
+				}
+			}			
+			else
+			{
+				// 理论上客户端不会在非出牌环节提交出牌
+			}
 			this->handleCardMutex.unlock();
 		}
 
@@ -479,6 +656,23 @@ namespace PokerGame
 				cardHeap >> *this->playerCards[playerIndex];
 			}
 			*this->lordCards << cardHeap;
+		}
+
+		void OnlineServer::CheckIfWin(int playerIndex)
+		{
+			if (this->playerCards[playerIndex]->Count() == 0)
+			{
+				this->gameStage = STAGE_END;
+				if (playerIndex == this->landlordIndex)
+				{
+					this->winnerFlag = 1 << playerIndex;
+				}
+				else
+				{
+					this->winnerFlag = ~(1 << this->landlordIndex);
+					this->winnerFlag &= 0b111;
+				}
+			}
 		}
 
 		int OnlineServer::FindPlayerIndex(char* pNameHash, sockaddr_in addr) noexcept

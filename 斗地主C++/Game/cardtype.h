@@ -44,8 +44,8 @@ namespace PokerGame
 			/// <returns>如果是相同的牌型，会返回一个指向抽象基类的智能指针，对象的实际类型与自身相同</returns>
 			virtual std::shared_ptr<TypedCardCollection> FormatCollection(PokerCardCollection& collection) = 0;
 			virtual ~TypedCardCollection() {}
-			static TypedCardCollection& TryCast(PokerCardCollection& collection);
-			static TypedCardCollection& TryCastZhaDanOnly(PokerCardCollection& collection);
+			static TypedCardCollection* TryCast(PokerCardCollection& collection);
+			static TypedCardCollection* TryCastZhaDanOnly(PokerCardCollection& collection);
 		};
 
 		class DanZhangCollection : public TypedCardCollection

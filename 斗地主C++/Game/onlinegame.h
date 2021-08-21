@@ -116,6 +116,7 @@ namespace PokerGame
 			void HandlePlayerDeterminLandlord(int playerIndex, int willingNess);
 			void HandlePlayerCardAct(int playerIndex, char* cardAct, int len);
 			void HandoutInitialCards();
+			void CheckIfWin(int playerIndex);
 			int FindPlayerIndex(char* NameHash, sockaddr_in addr) noexcept;
 			Scene FormCurrentScene() noexcept;
 			inline int GetAvailableIndex();
@@ -147,8 +148,9 @@ namespace PokerGame
 			char secondLastActType;
 			int winnerFlag;
 			int playerReadyFlag;
-			std::unique_ptr<PokerCardCollection> lastAct;
-			std::unique_ptr<PokerCardCollection> secondLastAct;
+			int passCount;
+			std::shared_ptr<PokerCardCollection> lastAct;
+			std::shared_ptr<PokerCardCollection> secondLastAct;
 			std::unique_ptr<PokerCardCollection> playerCards[3];
 			std::unique_ptr<PokerCardCollection> lordCards;
 		private://线程同步

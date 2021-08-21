@@ -321,7 +321,7 @@ namespace PokerGame
 					rawCollection = this->ReadCollection();
 					try
 					{
-						typedCollection = std::shared_ptr<TypedCardCollection>(&TypedCardCollection::TryCast(rawCollection));
+						typedCollection = std::shared_ptr<TypedCardCollection>(TypedCardCollection::TryCast(rawCollection));
 						gotValidCard = true;
 					}
 					catch (InvalidTypeException)
@@ -357,7 +357,7 @@ namespace PokerGame
 						}
 						catch (NotSameTypeException)
 						{
-							typedCollection = std::shared_ptr<TypedCardCollection>(&TypedCardCollection::TryCastZhaDanOnly(rawCollection));
+							typedCollection = std::shared_ptr<TypedCardCollection>(TypedCardCollection::TryCastZhaDanOnly(rawCollection));
 						}
 						if (typedCollection->IsLargerThan(*formerCollection))
 						{

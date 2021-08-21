@@ -52,6 +52,47 @@ namespace ClientAPP_WPF
                 this.ServiceAddress[2],
                 this.ServiceAddress[3]});
         }
+        public sbyte[] GetLastAct()
+        {
+            sbyte[] lastAct = new sbyte[20];
+            for (int i = 0; i < 20; i++) 
+            {
+                lastAct[i] = this.LastCardDrop[i];
+            }
+            return lastAct;
+        }
+        public sbyte[] GetSecondLastAct()
+        {
+            sbyte[] secondLastAct = new sbyte[20];
+            for (int i = 0; i < 20; i++)
+            {
+                secondLastAct[i] = this.SecondLastCardDrop[i];
+            }
+            return secondLastAct;
+        }
+        public sbyte[] GetLordCards()
+        {
+            sbyte[] lordCards = new sbyte[3];
+            for (int i = 0; i < 3; i++)
+            {
+                lordCards[i] = this.LandlordCards[i];
+            }
+            return lordCards;
+        }
+        public int LastActiveIndex
+        {
+            get
+            {
+                return ((int)this.ActiveIndex + 2) % 3;
+            }
+        }
+        public int SecondeLastActiveIndex
+        {
+            get
+            {
+                return ((int)this.ActiveIndex + 1) % 3;
+            }
+        }
     }
 
     public delegate void SceneEventHandler(Scene se);
@@ -148,11 +189,11 @@ namespace ClientAPP_WPF
                 });
                 if (receivedLength == -1)
                 {
-                    this.OnDebugEvent(err.Message);
+                    //this.OnDebugEvent(err.Message);
                 }
                 else
                 {
-                    this.OnDebugEvent(receivedLength.ToString());
+                    //this.OnDebugEvent(receivedLength.ToString());
                 }
                 this.OnRawBroadcastDatagramReceived(buffer, receivedLength);
                 await Task.Delay(100);
@@ -276,6 +317,48 @@ namespace ClientAPP_WPF
             }
         }
 
+        public async void PostCardAction(byte[] cardIndexes)
+        {
+            if (!IsServiceAddressSet)
+            {
+                return;
+            }
+            int bytesLen = 36;
+            if(cardIndexes != null)
+            {
+                bytesLen += cardIndexes.Length;
+            }
+            byte[] msgBytes = new byte[bytesLen];
+            Array.Copy(this.UserNameHashCode, 0, msgBytes, 0, 32);
+            Array.Copy(BitConverter.GetBytes(5), 0, msgBytes, 32, 4);
+            if(cardIndexes != null)
+            {
+                Array.Copy(cardIndexes, 0, msgBytes, 36, cardIndexes.Length);
+            }
+            byte[] received = null;
+            await Task.Run(() => {
+                try
+                {
+                    IPEndPoint IpEP = new IPEndPoint(this.ServiceIPAddress, this.ServicePort);
+                    this.ProcessHandlerSocket.Send(msgBytes, msgBytes.Length, IpEP);
+                    received = this.ProcessHandlerSocket.Receive(ref IpEP);
+                }
+                catch
+                {
+                    received = null;
+                }
+            });
+            if (received == null)
+            {
+
+            }
+            else
+            {
+                string receivedStr = Encoding.UTF8.GetString(received);
+                int returnCode = int.Parse(receivedStr);
+                this.OnDebugEvent($"出牌返回值{returnCode}");
+            }
+        }
 
         private async Task InnerScanForServer()
         {
